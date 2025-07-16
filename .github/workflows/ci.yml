@@ -1,21 +1,43 @@
 name: CI
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
 jobs:
   backend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Use Node.js 22
         uses: actions/setup-node@v3
         with:
           node-version: '22'
-      - run: cd backend && npm ci && npm test
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          npm ci
+      - name: Run backend tests (placeholder)
+        run: |
+          cd backend
+          npm test
+
   frontend:
     runs-on: ubuntu-latest
     steps:
-      - name: Use Node.js
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Use Node.js 22
         uses: actions/setup-node@v3
         with:
           node-version: '22'
-      - run: cd frontend && npm ci && npm test
-      - run: cd frontend && npm ci && npm test
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+      - name: Run frontend tests (placeholder)
+        run: |
+          cd frontend
+          npm test
