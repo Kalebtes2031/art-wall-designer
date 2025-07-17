@@ -88,8 +88,8 @@ export default function ProductSidebar({ onSelect }: { onSelect: (p: Product) =>
   }
 
   return (
-    <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-blue-50 hover:scrollbar-thumb-blue-300">
-      <div className="grid grid-cols-2 gap-3">
+    <div className="flex-1 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-blue-50 hover:scrollbar-thumb-blue-300">
+      <div className="grid grid-cols-2 gap-3 ">
         {products.map(p => (
           <div
             key={p._id}

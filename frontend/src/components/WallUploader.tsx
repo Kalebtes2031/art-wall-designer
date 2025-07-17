@@ -30,7 +30,7 @@ export default function WallUploader({ onUpload }: { onUpload: (url: string) => 
     <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 border border-gray-200 shadow-sm">
       <h3 className="text-lg font-medium text-gray-800 mb-3">Upload Your Wall</h3>
       
-      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-white hover:border-blue-400 transition-colors group">
+      <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-white hover:border-blue-400 transition-colors group">
         <div className="flex flex-col items-center justify-center pt-5 pb-6">
           {file ? (
             <div className="flex items-center">
@@ -63,7 +63,7 @@ export default function WallUploader({ onUpload }: { onUpload: (url: string) => 
       <button 
         onClick={handle} 
         disabled={!file || isUploading}
-        className="w-full mt-3 py-2 px-4 bg-blue-600 hover:bg-blue-600 text-black font-medium rounded-lg transition-colors duration-300 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full mt-3 py-2 px-4 bg-blue-600 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors duration-300 flex items-center justify-center border-1 border-blue-600 hover:border-black disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isUploading ? (
           <>

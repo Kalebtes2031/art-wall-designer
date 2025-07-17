@@ -1,16 +1,17 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import Admin from './pages/Admin';
-import Designer from './pages/Designer';
+// App.tsx
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import MainLayout from "./components/MainLayout";
+import Designer from "./pages/Designer";
+import Admin from "./pages/Admin";
 
 export default function App() {
   return (
     <Router>
-      <nav style={{ padding: 10, borderBottom: '1px solid #ddd' }}>
-        <Link to="/">Designer</Link> | <Link to="/admin">Admin</Link>
-      </nav>
       <Routes>
-        <Route path="/" element={<Designer />} />
-        <Route path="/admin" element={<Admin />} />
+        <Route path="/" element={<MainLayout />}>
+          <Route index element={<Designer />} />
+          <Route path="admin" element={<Admin />} />
+        </Route>
       </Routes>
     </Router>
   );
