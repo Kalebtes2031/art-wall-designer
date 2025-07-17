@@ -20,7 +20,8 @@
     "react-router-dom": "^7.6.3",
     "react-window": "^1.8.11",
     "tailwindcss": "^4.1.11",
-    "use-image": "^1.1.4"
+    "use-image": "^1.1.4",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",

@@ -4,14 +4,16 @@ import ProductSidebar from "../components/ProductSidebar";
 import type { Product } from "../components/ProductSidebar";
 import WallUploader from "../components/WallUploader";
 import CanvasArea from "../components/CanvasArea";
+import { v4 as uuidv4 } from "uuid";
 
 export default function Designer() {
   const [wallUrl, setWallUrl] = useState("");
-  const [placed, setPlaced] = useState<{ src: string; x: number; y: number }[]>(
-    []
-  );
+  const [placed, setPlaced] = useState<
+    { id: string; src: string; x: number; y: number }[]
+  >([]);
+
   const [current, setCurrent] = useState<Product | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [uploadWall, setUploadWall] = useState(false);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
   // Get available canvas dimensions
@@ -34,7 +36,7 @@ export default function Designer() {
       setPlaced((p) => [
         ...p,
         {
-          // fall back to the original image URL if transparentUrl is undefined:
+          id: uuidv4(),
           src: current.transparentUrl || current.imageUrl,
           x: dimensions.width / 2 - 50,
           y: dimensions.height / 2 - 50,
@@ -46,17 +48,22 @@ export default function Designer() {
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
       {/* Sidebar */}
-      <div className="w-80 bg-white shadow-xl rounded-r-2xl p-6 flex flex-col space-y-6 z-10">
+      <div className="w-80 bg-white shadow-xl rounded-r-2xl p-2 flex flex-col space-y-6 z-10">
         {/* <div className="flex items-center justify-between border-b pb-4">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             ArtWall Designer
           </h1>
           <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16" />
         </div> */}
+        <h2
+          onClick={() => setUploadWall((prev) => !prev)} // toggle on click
+          style={{ cursor: "pointer", color: uploadWall ? "blue" : "black" }} // optional visual cue
+        >
+          Upload Wall {uploadWall ? "▲" : "▼"} {/* toggle indicator */}
+        </h2>
+        {uploadWall && <WallUploader onUpload={setWallUrl} />}
 
-        <WallUploader onUpload={setWallUrl} />
-
-        <div className="flex-1 overflow-hidden flex flex-col bg-blue-50">
+        <div className="flex-1 overflow-hidden flex flex-col py-6 px-3 bg-gradient-to-r from-blue-200 to-gray-500 rounded-lg">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold text-gray-700">
               Art Collection
