@@ -1,5 +1,6 @@
 import express from 'express';
 import Product from '../models/Product';
+import { upload } from '../services/upload';
 
 const router = express.Router();
 
@@ -17,11 +18,37 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create product (Admin)
-router.post('/', async (req, res) => {
-  const { title, description, imageUrl, widthCm, heightCm } = req.body;
-  const newProduct = await Product.create({ title, description, imageUrl, widthCm, heightCm });
-  res.status(201).json(newProduct);
-});
+router.post(
+  '/', 
+  upload.single('image'),               // ← parse a single file field named "image"
+  async (req, res) => {
+    // Multer has populated:
+    //   req.body  -> { title, description, widthCm, heightCm }
+    //   req.file  -> the uploaded file
+    const { title, description, widthCm, heightCm } = req.body;
+    if (!title || !req.file) {
+      return res.status(400).json({ error: 'Title and image are required' });
+    }
+
+    // Build a public URL for the uploaded product image
+    const imageUrl = `/uploads/${req.file.filename}`;
+
+    try {
+      const newProduct = await Product.create({
+        title,
+        description,
+        imageUrl,
+        transparentUrl: imageUrl,
+        widthCm: widthCm ? Number(widthCm) : undefined,
+        heightCm: heightCm ? Number(heightCm) : undefined,
+      });
+      res.status(201).json(newProduct);
+    } catch (err) {
+      console.error('Error creating product:', err);
+      res.status(500).json({ error: 'Failed to create product' });
+    }
+  }
+);
 
 // Update product (Admin)
 router.put('/:id', async (req, res) => {
