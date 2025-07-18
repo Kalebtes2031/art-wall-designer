@@ -11,7 +11,7 @@ export default function CanvasArea({
   height,
 }: {
   wallUrl: string;
-  artworks: { src: string; x: number; y: number; id: string }[]; // Make sure each artwork has a unique `id`
+artworks: { src: string; x: number; y: number; id: string; width: number; height: number }[];
   width: number;
   height: number;
 }) {
@@ -75,6 +75,8 @@ export default function CanvasArea({
               x={a.x}
               y={a.y}
               id={a.id}
+              width={a.width}
+    height={a.height}
               isWall={false}
               isSelected={selectedId === a.id}
               onSelect={() => setSelectedId(a.id)}
