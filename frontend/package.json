@@ -16,6 +16,7 @@
     "konva": "^9.3.22",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-hot-toast": "^2.5.2",
     "react-konva": "^19.0.7",
     "react-router-dom": "^7.6.3",
     "react-window": "^1.8.11",
