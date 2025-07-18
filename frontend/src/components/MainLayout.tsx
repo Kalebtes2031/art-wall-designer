@@ -1,16 +1,13 @@
-// components/MainLayout.tsx
-import { Link, Outlet } from "react-router-dom";
+import { Outlet } from 'react-router-dom';
+import Navbar from './Navbar';
 
 export default function MainLayout() {
   return (
     <div className="h-screen flex flex-col">
-      <nav className="p-5 border-b border-gray-300">
-        <Link to="/">Designer</Link> | <Link to="/admin">Admin</Link>
-      </nav>
-      <main className="flex-1 overflow-auto p-4">
+      <Navbar />
+      <div className="flex-1 pt-20">
         <Outlet />
-      </main>
+      </div>
     </div>
   );
 }
-

@@ -1,8 +1,9 @@
 import mongoose from 'mongoose';
 
 const ProductSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: String,
+  sellerName: { type: String, required: true },
+  sellerPhone: { type: String, required: true },
+  price: { type: Number, required: true },
   imageUrl: String,      // original upload URL
   transparentUrl: String, // processed background‑removed image URL
   widthCm: Number,
