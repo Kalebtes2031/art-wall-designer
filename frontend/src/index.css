@@ -14,6 +14,34 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+  border-radius: 9999px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #e5e7eb; /* Tailwind gray-200 */
+  border-radius: 9999px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #828891; /* Tailwind gray-500 */
+  border-radius: 9999px;
+  border: 2px solid #e5e7eb; /* track padding effect */
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #828891; /* gray-600 on hover */
+}
+
+.scrollbar-thin::-webkit-scrollbar-button {
+  display: none;
+}
+/* Firefox support */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #828891 #e5e7eb;
+}
 
 /* a {
   font-weight: 500;

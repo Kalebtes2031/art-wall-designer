@@ -7,6 +7,8 @@ export default function ArtImage({
   src,
   x,
   y,
+  width,
+  height,
   isWall = false,
   scaleX = 1,
   scaleY = 1,
@@ -17,16 +19,22 @@ export default function ArtImage({
   src: string;
   x: number;
   y: number;
+  width?: number;
+  height?: number;
   isWall?: boolean;
   scaleX?: number;
   scaleY?: number;
   isSelected?: boolean;
   onSelect?: () => void;
 }) {
+
   const [image] = useImage(src);
   const groupRef = useRef<any>(null);
   const trRef = useRef<any>(null);
   const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
+const displayWidth = width ?? naturalSize.width;
+const displayHeight = height ?? naturalSize.height;
+
 
   useEffect(() => {
     if (image) {
@@ -69,8 +77,8 @@ export default function ArtImage({
           <Rect
             x={-10}
             y={-10}
-            width={image.width + 20}
-            height={image.height + 20}
+            width={displayWidth + 20}
+    height={displayHeight + 20}
             fill="#e0c097"
             stroke="#8B4513"
             strokeWidth={12}
@@ -86,6 +94,8 @@ export default function ArtImage({
           image={image}
           x={0}
           y={0}
+          width={displayWidth}
+  height={displayHeight}
           shadowColor="rgba(0,0,0,0.3)"
           shadowBlur={isSelected ? 10 : 0}
           shadowOpacity={0.6}
