@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import productRoutes from './routes/products';
 import wallRoutes from './routes/wall';
 import path from 'path';
+import authRoutes from './routes/auth';  
+import adminRoutes from './routes/admins';     
 
 dotenv.config();
 
@@ -15,6 +17,11 @@ app.use(express.json());
 // serve uploaded images
 app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
   
+// Auth endpoints (signup, login)
+app.use('/api/auth', authRoutes);
+
+app.use('/api/admins', adminRoutes);
+
 app.use('/api/products', productRoutes);
 app.use('/api/wall', wallRoutes);
 
