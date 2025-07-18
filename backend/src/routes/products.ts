@@ -1,6 +1,7 @@
 import express from 'express';
 import Product from '../models/Product';
 import { upload } from '../services/upload';
+import { requireAdmin } from '../middleware/auth';
 
 const router = express.Router();
 
@@ -19,15 +20,16 @@ router.get('/:id', async (req, res) => {
 
 // Create product (Admin)
 router.post(
-  '/', 
+  '/',
+  requireAdmin, 
   upload.single('image'),               // ← parse a single file field named "image"
   async (req, res) => {
     // Multer has populated:
     //   req.body  -> { title, description, widthCm, heightCm }
     //   req.file  -> the uploaded file
-    const { title, description, widthCm, heightCm } = req.body;
-    if (!title || !req.file) {
-      return res.status(400).json({ error: 'Title and image are required' });
+    const { sellerName, sellerPhone, price, widthCm, heightCm } = req.body;
+    if (!sellerName || !req.file || !sellerPhone || !price) {
+      return res.status(400).json({ error: 'seller info, price and image are required' });
     }
 
     // Build a public URL for the uploaded product image
@@ -35,8 +37,9 @@ router.post(
 
     try {
       const newProduct = await Product.create({
-        title,
-        description,
+        sellerName,
+        sellerPhone,
+        price,
         imageUrl,
         transparentUrl: imageUrl,
         widthCm: widthCm ? Number(widthCm) : undefined,
@@ -51,14 +54,14 @@ router.post(
 );
 
 // Update product (Admin)
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireAdmin, async (req, res) => {
   const updated = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
   if (!updated) return res.status(404).send('Not found');
   res.json(updated);
 });
 
 // Delete product (Admin)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAdmin, async (req, res) => {
   await Product.findByIdAndDelete(req.params.id);
   res.status(204).send();
 });

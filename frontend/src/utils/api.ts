@@ -2,7 +2,16 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api', // Proxy is handled in vite.config.ts
+  baseURL: '/api', // proxy handled by Vite
+});
+
+// ✅ Attach token automatically (if present)
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export default api;

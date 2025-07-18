@@ -4,7 +4,9 @@ import api from '../utils/api';
 
 export interface Product {
   _id: string;
-  title: string;
+  sellerName: string;
+  sellerPhone: string;
+  price: number;
   imageUrl: string;         // added
   transparentUrl?: string;
   widthCm?: number;
@@ -103,15 +105,18 @@ export default function ProductSidebar({ onSelect }: { onSelect: (p: Product) =>
             <div className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
               <img 
                 src={p.transparentUrl || p.imageUrl}
-                alt={p.title} 
+                alt={p.sellerName} 
                 className="object-contain w-full h-full p-2" 
               />
             </div>
             <div className="p-2">
-              <p className="font-medium text-gray-800 text-sm truncate">{p.title}</p>
+              <p className="font-medium text-gray-800 text-sm truncate">{p.sellerName}</p>
               <div className="flex justify-between items-center mt-1">
-                <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">
+                {/* <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">
                   {p.widthCm || 30}×{p.heightCm || 40}cm
+                </span> */}
+                <span className="text-sm font-bold text-gray-600">
+                  $ {p.price}.00
                 </span>
                 {selectedId === p._id && (
                   <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>

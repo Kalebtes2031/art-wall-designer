@@ -53,7 +53,7 @@ export default function Designer() {
 
 
   return (
-    <div className="flex h-[640px] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+    <div className="flex h-[660px] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
       {/* Sidebar */}
       <div className="w-80 bg-white shadow-xl rounded-r-2xl p-2 flex flex-col space-y-6 z-10">
         {/* <div className="flex items-center justify-between border-b pb-4">
