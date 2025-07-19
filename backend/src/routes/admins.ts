@@ -2,12 +2,12 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
-import { requireAdmin } from '../middleware/auth';
+import { requireAuth  } from '../middleware/auth';
 
 const router = express.Router();
 
 // Create new admin (only by existing admin)
-router.post('/', requireAdmin, async (req, res) => {
+router.post('/', requireAuth('admin') , async (req, res) => {
   try {
     const { name, email, password } = req.body;
     if (!name || !email || !password) {
