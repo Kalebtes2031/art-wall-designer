@@ -5,7 +5,9 @@ import productRoutes from './routes/products';
 import wallRoutes from './routes/wall';
 import path from 'path';
 import authRoutes from './routes/auth';  
-import adminRoutes from './routes/admins';     
+import adminRoutes from './routes/admins'; 
+import cartRoutes    from './routes/cart';
+import orderRoutes   from './routes/orders';    
 
 dotenv.config();
 
@@ -24,6 +26,9 @@ app.use('/api/admins', adminRoutes);
 
 app.use('/api/products', productRoutes);
 app.use('/api/wall', wallRoutes);
+app.use('/api/cart',      cartRoutes);
+app.use('/api/orders',    orderRoutes);
+
 
 const PORT = process.env.PORT || 5000;
 mongoose.connect(process.env.MONGODB_URI!)

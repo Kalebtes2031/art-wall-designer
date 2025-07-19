@@ -3,6 +3,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import bcrypt from 'bcrypt';
+import { requireAuth } from '../middleware/auth';
 
 const router = express.Router();
 
@@ -67,15 +68,15 @@ router.post('/signup', async (req, res) => {
       return res.status(400).json({ error: 'Email already in use' });
     }
 
-    console.log('[AUTH][SIGNUP] hashing password');
-    const hashed = await bcrypt.hash(password, 10);
-    console.log('[AUTH][SIGNUP] password hashed');
+    // console.log('[AUTH][SIGNUP] hashing password');
+    // const hashed = await bcrypt.hash(password, 10);
+    // console.log('[AUTH][SIGNUP] password hashed');
 
     console.log('[AUTH][SIGNUP] creating user document');
     const newUser = await User.create({
       name,
       email,
-      password: hashed,
+      password: password,
       role: 'customer',       // force customer
     });
     console.log('[AUTH][SIGNUP] user created with id:', newUser._id);
@@ -99,6 +100,7 @@ router.post('/signup', async (req, res) => {
       token,
       user: {
         id: newUser._id,
+         name:  newUser.name,
         email: newUser.email,
         role: newUser.role,
       },
@@ -108,5 +110,20 @@ router.post('/signup', async (req, res) => {
     res.status(500).json({ error: 'Failed to create user' });
   }
 });
+
+
+// List all users (admin only)
+router.get('/users', requireAuth('admin'), async (req, res) => {
+  const all = await User.find().select('_id name email role').lean();
+  // map _id to id
+  const out = all.map(u => ({
+    id:    u._id.toString(),
+    name:  u.name,
+    email: u.email,
+    role:  u.role,
+  }));
+  res.json(out);
+});
+
 
 export default router;
