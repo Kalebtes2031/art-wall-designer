@@ -7,8 +7,8 @@ export default function PrivateRoute({
   children,
   allowedRoles
 }: { children: JSX.Element; allowedRoles?: string[] }) {
-  const { token, role } = useAuth();
-  if (!token || (allowedRoles && !allowedRoles.includes(role ?? ''))) {
+  const { token, user } = useAuth();
+  if (!token || (allowedRoles && !allowedRoles.includes(user?.role ?? ''))) {
     return <Navigate to="/login" replace />;
   }
   return children;

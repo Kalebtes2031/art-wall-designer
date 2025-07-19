@@ -2,10 +2,11 @@
 import { Routes, Route } from "react-router-dom";
 import MainLayout from "./components/MainLayout";
 import Designer from "./pages/Designer";
-import Admin from "./pages/Admin";
+import AdminDashboard from "./pages/AdminDashboard";
+import SellerDashboard from "./pages/SellerDashboard";
 import PrivateRoute from "./components/PrivateRoute";
 import Login from "./pages/Login";
-import Signup from "./pages/SignUp";
+import Signup from "./pages/Signup";
 
 export default function App() {
   return (
@@ -15,14 +16,21 @@ export default function App() {
         <Route
           path="admin"
           element={
-            <PrivateRoute allowedRoles={['admin']}>
-              <Admin />
+            <PrivateRoute allowedRoles={["admin"]}>
+              <AdminDashboard />
             </PrivateRoute>
           }
         />
-      <Route path="login" element={<Login />} />
-      <Route path="signup" element={<Signup />} />
-
+        <Route
+          path="seller"
+          element={
+            <PrivateRoute allowedRoles={["seller"]}>
+              <SellerDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route path="login" element={<Login />} />
+        <Route path="signup" element={<Signup />} />
       </Route>
     </Routes>
   );

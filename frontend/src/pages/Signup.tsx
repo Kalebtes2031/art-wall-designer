@@ -18,7 +18,7 @@ export default function Signup() {
     setLoading(true);
     try {
       const res = await api.post('/auth/signup', { name, email, password });
-      login(res.data.token, res.data.user.role);
+      login(res.data.token, res.data.user);
       toast.success('Welcome! You are now logged in.');
       alert('✅ Signup successful!');
         console.log('Signup response:', res.data);

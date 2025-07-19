@@ -19,13 +19,19 @@ export default function Login() {
       const res = await api.post('/auth/login', { email, password });
 
       // use context to set token and role
-      login(res.data.token, res.data.role);
+      const { token, user } = res.data;
+      login(token, user);
 
-      // redirect based on role if needed
-      if (res.data.role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/');
+      // Role‑based routing
+      switch (user.role) {
+        case 'admin':
+          navigate('/admin');
+          break;
+        case 'seller':
+          navigate('/seller');
+          break;
+        default:
+          navigate('/');       // customer
       }
     } catch (err) {
       console.error('Login error:', err);
@@ -43,7 +49,7 @@ export default function Login() {
       >
         <h2 className="text-3xl font-bold text-center text-gray-800">Admin Login</h2>
         <p className="text-sm text-center text-gray-500">
-          Please sign in with your admin credentials
+          Please sign in with your credentials
         </p>
 
         <div>
