@@ -1,47 +1,26 @@
-// frontend/src/hooks/useCartApi.ts
-import { useState } from 'react';
+// src/hooks/useCartApi.ts
+import { useCallback } from 'react';
 import api from '../utils/api';
+import type { Cart } from '../types/Cart';
 
 export function useCartApi() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Fetch whole cart
+  const fetchCart = useCallback(async (): Promise<Cart> => {
+    const res = await api.get<Cart>('/cart');
+    return res.data;
+  }, []);
 
-  const fetchCart = async () => {
-    setLoading(true); setError(null);
-    try {
-      const res = await api.get('/cart');
-      return res.data;
-    } catch (e: any) {
-      setError(e.response?.data?.error || 'Failed to load cart');
-      throw e;
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Add or update a line item
+  const setItem = useCallback(async (productId: string, quantity: number) => {
+    const res = await api.post<Cart>('/cart/items', { productId, quantity });
+    return res.data;
+  }, []);
 
-  const addItem = async (productId: string, qty = 1) => {
-    setLoading(true); setError(null);
-    try {
-      await api.post('/cart/items', { productId, quantity: qty });
-    } catch (e: any) {
-      setError(e.response?.data?.error || 'Failed to add item');
-      throw e;
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Remove a line item
+  const removeItem = useCallback(async (productId: string) => {
+    const res = await api.delete<Cart>(`/cart/items/${productId}`);
+    return res.data;
+  }, []);
 
-  const removeItem = async (productId: string) => {
-    setLoading(true); setError(null);
-    try {
-      await api.delete(`/cart/items/${productId}`);
-    } catch (e: any) {
-      setError(e.response?.data?.error || 'Failed to remove item');
-      throw e;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return { fetchCart, addItem, removeItem, loading, error };
+  return { fetchCart, setItem, removeItem };
 }

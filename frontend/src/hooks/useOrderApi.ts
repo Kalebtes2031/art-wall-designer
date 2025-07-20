@@ -1,49 +1,32 @@
-// frontend/src/hooks/useOrderApi.ts
-import { useState } from 'react';
+// src/hooks/useOrderApi.ts
+import { useCallback } from 'react';
 import api from '../utils/api';
+import type { Order } from '../types/Order';
 
-// frontend/src/hooks/useOrderApi.ts
 export function useOrderApi() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Create a new order (from cart)
+  const createOrder = useCallback(async (): Promise<Order> => {
+    const res = await api.post<Order>('/orders');
+    return res.data;
+  }, []);
 
-  const createOrder = async () => {
-    setLoading(true); setError(null);
-    try {
-      const res = await api.post('/orders');
-      return res.data;
-    } catch (e: any) {
-      setError(e.response?.data?.error || 'Failed to create order');
-      throw e;
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Pay an existing order
+  const payOrder = useCallback(async (orderId: string): Promise<{ status: string }> => {
+    const res = await api.post<{ status: string }>(`/orders/${orderId}/pay`);
+    return res.data;
+  }, []);
 
-  const payOrder = async (orderId: string) => {
-    setLoading(true); setError(null);
-    try {
-      await api.post(`/orders/${orderId}/pay`);
-    } catch (e: any) {
-      setError(e.response?.data?.error || 'Failed to pay order');
-      throw e;
-    } finally {
-      setLoading(false);
-    }
-  };
+  // List orders for current user/role
+  const listOrders = useCallback(async (): Promise<Order[]> => {
+    const res = await api.get<Order[]>('/orders');
+    return res.data;
+  }, []);
 
-  const getOrders = async () => {
-    setLoading(true); setError(null);
-    try {
-      const res = await api.get('/orders');
-      return res.data;
-    } catch (e: any) {
-      setError(e.response?.data?.error || 'Failed to load orders');
-      throw e;
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Update order status (admin/seller)
+  const updateStatus = useCallback(async (orderId: string, status: string): Promise<Order> => {
+    const res = await api.patch<Order>(`/orders/${orderId}`, { status });
+    return res.data;
+  }, []);
 
-  return { createOrder, payOrder, getOrders, loading, error };
+  return { createOrder, payOrder, listOrders, updateStatus };
 }

@@ -1,6 +1,9 @@
+// backend/src/routes/cart.ts
 import express from 'express';
 import Cart from '../models/Cart';
-import { requireAuth } from '../middleware/auth';  // ensures token, role=customer
+import Product from '../models/Product';
+import { requireAuth } from '../middleware/auth';
+import { Types } from 'mongoose';
 
 const router = express.Router();
 
@@ -14,35 +17,46 @@ router.get('/', requireAuth('customer'), async (req: any, res) => {
   res.json(cart);
 });
 
-// Add or update an item
+// Add or update item
 router.post('/items', requireAuth('customer'), async (req: any, res) => {
   const userId = req.user.id;
   const { productId, quantity } = req.body;
-  let cart = await Cart.findOne({ user: userId });
-  if (!cart) cart = await Cart.create({ user: userId, items: [] });
+  if (!Types.ObjectId.isValid(productId) || quantity < 1) {
+    return res.status(400).json({ error: 'Invalid payload' });
+  }
+  const product = await Product.findById(productId);
+  if (!product) return res.status(404).json({ error: 'Product not found' });
 
-  const idx = cart.items.findIndex(i => i.product.toString() === productId);
-  if (idx > -1) {
-    // update quantity
+  const cart = await Cart.findOneAndUpdate(
+    { user: userId },
+    {},
+    { upsert: true, new: true }
+  );
+
+  const idx = cart.items.findIndex(i => i.product.equals(productId));
+  if (idx >= 0) {
     cart.items[idx].quantity = quantity;
   } else {
     cart.items.push({ product: productId, quantity });
   }
-  cart.updatedAt = new Date();
   await cart.save();
   await cart.populate('items.product');
   res.json(cart);
 });
 
-// Remove an item
+// Remove item
 router.delete('/items/:productId', requireAuth('customer'), async (req: any, res) => {
   const userId = req.user.id;
   const { productId } = req.params;
-  const cart = await Cart.findOneAndUpdate(
-    { user: userId },
-    { $pull: { items: { product: productId } } },
-    { new: true }
-  ).populate('items.product');
+  if (!Types.ObjectId.isValid(productId)) {
+    return res.status(400).json({ error: 'Invalid productId' });
+  }
+  const cart = await Cart.findOne({ user: userId });
+  if (!cart) return res.status(404).json({ error: 'Cart not found' });
+
+  cart.items = cart.items.filter(i => !i.product.equals(productId));
+  await cart.save();
+  await cart.populate('items.product');
   res.json(cart);
 });
 

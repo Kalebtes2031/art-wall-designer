@@ -14,6 +14,7 @@ export default function ArtImage({
   scaleY = 1,
   isSelected,
   onSelect,
+  onDelete,
 }: {
   id?: string;
   src: string;
@@ -26,14 +27,17 @@ export default function ArtImage({
   scaleY?: number;
   isSelected?: boolean;
   onSelect?: () => void;
+  onDelete?: () => void;
+
 }) {
 
   const [image] = useImage(src);
   const groupRef = useRef<any>(null);
   const trRef = useRef<any>(null);
   const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
-const displayWidth = width ?? naturalSize.width;
-const displayHeight = height ?? naturalSize.height;
+  const displayWidth = width ?? naturalSize.width;
+  const displayHeight = height ?? naturalSize.height;
+  const [hovered, setHovered] = useState(false);
 
 
   useEffect(() => {

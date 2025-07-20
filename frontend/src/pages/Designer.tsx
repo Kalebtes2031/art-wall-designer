@@ -1,15 +1,15 @@
 // pages/Designer.tsx
 import { useState, useEffect } from "react";
 import ProductSidebar from "../components/ProductSidebar";
-import type { Product } from "../components/ProductSidebar";
+import type { Product } from "../types/Product";
 import WallUploader from "../components/WallUploader";
 import CanvasArea from "../components/CanvasArea";
 import { v4 as uuidv4 } from "uuid";
-import { useCartApi } from "../hooks/useCartApi";
 import CartFooter from "../components/CartFooter";
+import { useCart } from "../context/CartContext";
 
 export default function Designer() {
-  const [wallUrl, setWallUrl] = useState("");
+  const [wallUrl, setWallUrl] = useState("/wall.jpg");
   const [placed, setPlaced] = useState<
     {
       id: string;
@@ -25,7 +25,8 @@ export default function Designer() {
   const [uploadWall, setUploadWall] = useState(false);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
-  const { addItem } = useCartApi();
+  
+  const { cart, addToCart } = useCart();
 
   // Get available canvas dimensions
   useEffect(() => {
@@ -42,10 +43,43 @@ export default function Designer() {
     return () => window.removeEventListener("resize", updateDimensions);
   }, []);
 
+    // derive placed array from cart items
+  useEffect(() => {
+    if (!cart) {
+      setPlaced([]);
+      return;
+    }
+    const defaultW = 200;
+    const defaultH = 200;
+    const arr: typeof placed = [];
+    cart.items.forEach(({ product, quantity }) => {
+      for (let i = 0; i < quantity; i++) {
+        arr.push({
+          id: `${product._id}-${i}`,
+          src: product.transparentUrl || product.imageUrl,
+          x: dimensions.width / 2 - defaultW / 2,
+          y: dimensions.height / 2 - defaultH / 2,
+          width: defaultW,
+          height: defaultH,
+        });
+      }
+    });
+    setPlaced(arr);
+  }, [cart, dimensions]);
+
+  const handleAdd = async () => {
+    if (!current) return;
+    try {
+      await addToCart(current._id, 1);
+    } catch (err) {
+      console.error("Failed to add to cart:", err);
+    }
+  };
+
   const addArt = async () => {
     if (current) {
       try {
-        await addItem(current._id, 1);
+        await addToCart(current._id, 1);
       } catch (err) {
         console.error("Failed to add to cart:", err);
       }
@@ -67,7 +101,7 @@ export default function Designer() {
 
   return (
     <>
-      <div className="flex h-[580px] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+      <div className="flex h-[660px] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
         {/* Sidebar */}
         <div className="w-80 bg-white shadow-xl rounded-r-2xl px-2 flex flex-col space-y-2 z-10">
           {/* <div className="flex items-center justify-between border-b pb-4">
@@ -95,14 +129,14 @@ export default function Designer() {
                 Art Collection
               </h2>
               <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                {placed.length} placed
+                {cart?.items.reduce((s, i) => s + i.quantity, 0) || 0} placed
               </span>
             </div>
             <ProductSidebar onSelect={setCurrent} />
           </div>
 
           <button
-            onClick={addArt}
+            onClick={handleAdd}
             disabled={!current}
             className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold rounded-lg shadow-md transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
           >
