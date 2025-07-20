@@ -1,113 +1,91 @@
 // backend/src/routes/orders.ts
 import express from 'express';
 import Order from '../models/Order';
-import Payment from '../models/Payment';
-import Cart  from '../models/Cart';
+import Cart from '../models/Cart';
 import { requireAuth } from '../middleware/auth';
-import { Types, Document } from 'mongoose';
-
-
-interface CartItemPopulated {
-  product: {
-    _id: Types.ObjectId;
-    price: number;
-    seller: Types.ObjectId;
-  };
-  quantity: number;
-}
-
-interface CartPopulated {
-  user: Types.ObjectId;
-  items: CartItemPopulated[];
-  updatedAt: Date;
-}
+import { Types } from 'mongoose';
 
 const router = express.Router();
 
-
-// 2) Use `.lean()` right after `.populate()`
+// Create order from cart
 router.post('/', requireAuth('customer'), async (req: any, res) => {
   const userId = req.user.id;
-  const cart = await Cart
-    .findOne({ user: userId })
-    .populate('items.product')
-    .lean<CartPopulated>();      // ← this returns a plain object matching CartPopulated
-
+  const cart = await Cart.findOne({ user: userId }).populate('items.product');
   if (!cart || cart.items.length === 0) {
     return res.status(400).json({ error: 'Cart is empty' });
   }
 
-  const items = cart.items.map(i => ({
-    product:      i.product._id,
-    quantity:     i.quantity,
-    priceAtOrder: i.product.price,
-  }));
-  const total = items.reduce((sum, x) => sum + x.quantity * x.priceAtOrder, 0);
+  // item.product is populated, but TS may see it as any
+  const items = cart.items.map(i => {
+    const p: any = i.product;
+    return {
+      product:      p._id,
+      quantity:     i.quantity,
+      priceAtOrder: p.price,
+    };
+  });
+  const total = items.reduce((sum, i) => sum + i.quantity * i.priceAtOrder, 0);
 
   const order = await Order.create({ user: userId, items, total, status: 'pending' });
-  
-  // To clear, use update since `cart` is a plain object
-  await Cart.updateOne({ user: userId }, { items: [] });
 
-  res.status(201).json({ orderId: order._id, total });
+  // clear cart
+  cart.items = [];
+  await cart.save();
+
+  res.status(201).json(order);
 });
 
-
-
-// Fake payment
+// Pay for order
 router.post('/:id/pay', requireAuth('customer'), async (req: any, res) => {
-  const order = await Order.findById(req.params.id);
-  if (!order || order.user.toString() !== req.user.id) {
+  const { id } = req.params;
+  if (!Types.ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid order ID' });
+  const order = await Order.findById(id);
+  if (!order || !order.user.equals(req.user.id)) {
     return res.status(404).json({ error: 'Order not found' });
   }
   order.status = 'paid';
   await order.save();
-
-  await Payment.create({ order: order._id, amount: order.total, status: 'success' });
   res.json({ status: 'success' });
 });
 
 // List orders
 router.get('/', requireAuth(), async (req: any, res) => {
-  const { role, id: userId } = req.user;
+  const { role, id } = req.user;
   let orders;
-
   if (role === 'admin') {
     orders = await Order.find().populate('items.product');
   } else if (role === 'seller') {
-    // we need to filter orders whose items.product.seller === userId
-    // first populate seller on product
-    orders = await Order.find()
-      .populate<{ items: ({ product: { seller: Types.ObjectId } })[] }>('items.product')
-      .then(list =>
-        list.filter(o =>
-          o.items.some(i =>
-            (i.product as any).seller.toString() === userId
-          )
-        )
-      );
+    const all = await Order.find().populate('items.product');
+    orders = all.filter(o =>
+      o.items.some(i => {
+        const p: any = i.product;
+        return p.seller.equals(id);
+      })
+    );
   } else {
-    orders = await Order.find({ user: userId }).populate('items.product');
+    orders = await Order.find({ user: id }).populate('items.product');
   }
-
   res.json(orders);
 });
 
-// Update status
-router.put('/:id', requireAuth('admin','seller'), async (req: any, res) => {
-  const order = await Order.findById(req.params.id)
-    .populate<{ items: ({ product: { seller: Types.ObjectId } })[] }>('items.product');
-  if (!order) return res.status(404).json({ error: 'Not found' });
+// Update order status
+router.patch('/:id', requireAuth('admin','seller'), async (req: any, res) => {
+  const { id } = req.params;
+  const order = await Order.findById(id).populate('items.product');
+  if (!order) return res.status(404).json({ error: 'Order not found' });
 
   if (req.user.role === 'seller') {
-    const owns = order.items.some(i =>
-      (i.product as any).seller.toString() === req.user.id
-    );
+    const owns = order.items.some(i => {
+      const p: any = i.product;
+      return p.seller.equals(req.user.id);
+    });
     if (!owns) return res.status(403).json({ error: 'Forbidden' });
   }
-
-  order.status = req.body.status || order.status;
-  await order.save();
+  const { status } = req.body;
+  if (status && ['pending','paid','shipped','cancelled'].includes(status)) {
+    order.status = status;
+    await order.save();
+  }
   res.json(order);
 });
 

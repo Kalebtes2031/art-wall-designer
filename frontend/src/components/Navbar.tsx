@@ -28,8 +28,8 @@ export default function Navbar() {
     <nav
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
         isScrolled
-          ? "bg-white/90 backdrop-blur-md shadow-md py-2 h-16"
-          : "bg-gradient-to-r from-blue-50 to-indigo-50 py-3 h-16"
+          ? "bg-white/90 backdrop-blur-md shadow-md py-2 h-[56px]"
+          : "bg-gradient-to-r from-blue-50 to-indigo-50 py-3 h-[56px]"
       }`}
     >
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-full">
@@ -59,6 +59,36 @@ export default function Navbar() {
             )}
           </Link>
 
+          {user?.role === "customer" && (
+            <Link
+              to="/cart"
+              className={`relative font-medium transition-colors ${
+                location.pathname === "/cart"
+                  ? "text-blue-600"
+                  : "text-gray-700 hover:text-blue-500"
+              }`}
+            >
+              Cart
+              {location.pathname === "/cart" && (
+                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-full" />
+              )}
+            </Link>
+          )}
+          {user?.role === "customer" && (
+            <Link
+              to="/orders"
+              className={`relative font-medium transition-colors ${
+                location.pathname === "/orders"
+                  ? "text-blue-600"
+                  : "text-gray-700 hover:text-blue-500"
+              }`}
+            >
+              Order
+              {location.pathname === "/orders" && (
+                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-full" />
+              )}
+            </Link>
+          )}
           {user?.role === "admin" && (
             <Link
               to="/admin"
