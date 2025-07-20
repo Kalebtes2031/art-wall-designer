@@ -14,6 +14,7 @@ export default function CartPage() {
   const [loading, setLoading] = useState(false);
   const [isRemoving, setIsRemoving] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { refreshCart } = useCart();
 
   useEffect(() => {
     const loadCart = async () => {
@@ -34,12 +35,13 @@ export default function CartPage() {
     0
   ) ?? 0;
 
-  const changeQty = async (id: string, qty: number) => {
+  const changeQty = async (id: string, qty: number, sizeIndex?: number) => {
     if (qty < 1) return;
     try {
       setLoading(true);
-      const updated = await setItem(id, qty);
+      const updated = await setItem(id, qty, sizeIndex);
       setCart(updated);
+      await refreshCart();
     } catch {
       toast.error('Could not update quantity');
     } finally {
@@ -47,11 +49,12 @@ export default function CartPage() {
     }
   };
 
-  const onRemove = async (id: string) => {
+  const onRemove = async (id: string, sizeIndex?: number) => {
     try {
       setIsRemoving(id);
-      const updated = await removeItem(id);
+      const updated = await removeItem(id, sizeIndex);
       setCart(updated);
+      await refreshCart();
       toast.success('Item removed from cart');
     } catch {
       toast.error('Could not remove item');
@@ -160,7 +163,7 @@ export default function CartPage() {
                       <div className="flex justify-between items-center mt-6">
                         <div className="flex items-center">
                           <button
-                            onClick={() => changeQty(item.product._id, item.quantity - 1)}
+                            onClick={() => changeQty(item.product._id, item.quantity - 1, item.sizeIndex)}
                             disabled={item.quantity <= 1 || loading}
                             className={`w-10 h-10 flex items-center justify-center rounded-full ${
                               item.quantity <= 1 
@@ -174,7 +177,7 @@ export default function CartPage() {
                           <span className="mx-4 font-medium text-lg">{item.quantity}</span>
                           
                           <button
-                            onClick={() => changeQty(item.product._id, item.quantity + 1)}
+                            onClick={() => changeQty(item.product._id, item.quantity + 1, item.sizeIndex)}
                             disabled={loading}
                             className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200"
                           >
@@ -183,7 +186,7 @@ export default function CartPage() {
                         </div>
                         
                         <button
-                          onClick={() => onRemove(item.product._id)}
+                          onClick={() => onRemove(item.product._id, item.sizeIndex)}
                           disabled={isRemoving === item.product._id || loading}
                           className="flex items-center text-red-500 hover:text-red-700 disabled:opacity-50"
                         >

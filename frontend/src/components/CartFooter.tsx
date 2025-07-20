@@ -17,10 +17,10 @@ export default function CartFooter() {
   const total = cart?.items?.reduce((sum: number, i) => sum + i.quantity * i.product.price, 0) ?? 0;
   const itemCount = cart?.items?.reduce((count: number, i) => count + i.quantity, 0) ?? 0;
 
-  const changeQty = async (prodId: string, qty: number) => {
+  const changeQty = async (prodId: string, qty: number, sizeIndex?: number) => {
     if (qty < 1) return;
     try {
-      await updateItem(prodId, qty);
+      await updateItem(prodId, qty, sizeIndex);
       toast.success("Quantity updated");
     } catch {
       toast.error("Failed to update quantity");
@@ -32,9 +32,9 @@ export default function CartFooter() {
     navigate("/cart");
   };
 
-  const onRemove = async (prodId: string) => {
+  const onRemove = async (prodId: string, sizeIndex: number) => {
     try {
-      await removeFromCart(prodId);
+      await removeFromCart(prodId, sizeIndex);
       toast.success("Item removed from cart");
     } catch {
       toast.error("Failed to remove item");
@@ -172,7 +172,7 @@ export default function CartFooter() {
                           <div className="flex items-center space-x-2 ml-2">
                             <div className="flex items-center border border-gray-300 rounded-lg">
                               <button
-                                onClick={() => changeQty(item.product._id, item.quantity - 1)}
+                                onClick={() => changeQty(item.product._id, item.quantity - 1, item.sizeIndex)}
                                 disabled={item.quantity <= 1}
                                 className={`p-2 ${item.quantity <= 1 ? 'text-gray-300' : 'text-gray-600 hover:bg-gray-100'}`}
                               >
@@ -184,7 +184,7 @@ export default function CartFooter() {
                               </span>
                               
                               <button
-                                onClick={() => changeQty(item.product._id, item.quantity + 1)}
+                                onClick={() => changeQty(item.product._id, item.quantity + 1, item.sizeIndex)}
                                 className="p-2 text-gray-600 hover:bg-gray-100"
                               >
                                 <FiPlus className="h-4 w-4" />
@@ -192,7 +192,7 @@ export default function CartFooter() {
                             </div>
                             
                             <button
-                              onClick={() => onRemove(item.product._id)}
+                              onClick={() => onRemove(item.product._id, item.sizeIndex)}
                               className="p-2 text-red-500 hover:bg-red-50 rounded-full"
                               title="Remove item"
                             >

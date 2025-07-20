@@ -1,35 +1,39 @@
+// components/CanvasArea.tsx
+import React, { useEffect, useState } from "react";
 import { Stage, Layer } from "react-konva";
-import ArtImage from "./ArtImage";
 import useImage from "use-image";
-import { useEffect, useState } from "react";
-// import { KonvaEventObject } from 'konva/lib/Node';
+import ArtImage from "./ArtImage";
+import type { Artwork } from "../types/Artwork";
+
+interface CanvasAreaProps {
+  wallUrl: string;
+  artworks: Artwork[];
+  width: number;
+  height: number;
+  onDelete?: (placedId: string) => void;
+  onEditSize?: (placedId: string) => void;
+}
 
 export default function CanvasArea({
   wallUrl,
   artworks,
   width,
   height,
-}: {
-  wallUrl: string;
-artworks: { src: string; x: number; y: number; id: string; width: number; height: number }[];
-  width: number;
-  height: number;
-}) {
+  onDelete,
+  onEditSize,
+}: CanvasAreaProps) {
   const [wallImage] = useImage(wallUrl);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  // Calculate scale and offset to fit wall image perfectly
+  // Fit wall image into canvas with correct scaling and centering
   useEffect(() => {
     if (!wallImage) return;
-
     const imgRatio = wallImage.width / wallImage.height;
     const containerRatio = width / height;
-
     let newScale = 1;
-    let newOffset = { x: 0, y: 0 };
-
+    const newOffset = { x: 0, y: 0 };
     if (imgRatio > containerRatio) {
       newScale = width / wallImage.width;
       newOffset.y = (height - wallImage.height * newScale) / 2;
@@ -37,7 +41,6 @@ artworks: { src: string; x: number; y: number; id: string; width: number; height
       newScale = height / wallImage.height;
       newOffset.x = (width - wallImage.width * newScale) / 2;
     }
-
     setScale(newScale);
     setOffset(newOffset);
   }, [wallImage, width, height]);
@@ -48,15 +51,15 @@ artworks: { src: string; x: number; y: number; id: string; width: number; height
         width={width}
         height={height}
         className="shadow-2xl rounded-xl overflow-hidden border-8 border-white bg-white"
-        // onMouseDown={handleStageMouseDown}
         onMouseDown={(e) => {
-          const clickedOnEmpty = e.target === e.target.getStage();
-          if (clickedOnEmpty) {
-            setSelectedId(null); // Deselect any selected art
+          // Deselect any selected artwork if clicking outside
+          if (e.target === e.target.getStage()) {
+            setSelectedId(null);
           }
         }}
       >
         <Layer>
+          {/* Background wall image */}
           {wallImage && (
             <ArtImage
               src={wallUrl}
@@ -64,22 +67,26 @@ artworks: { src: string; x: number; y: number; id: string; width: number; height
               y={offset.y}
               scaleX={scale}
               scaleY={scale}
-              isWall={true}
-              onSelect={() => setSelectedId(null)} 
+              isWall
+              onSelect={() => setSelectedId(null)}
             />
           )}
-          {artworks.map((a, i) => (
+
+          {/* User-placed artworks */}
+          {artworks.map((a) => (
             <ArtImage
               key={a.id}
+              id={a.id}
               src={a.src}
               x={a.x}
               y={a.y}
-              id={a.id}
               width={a.width}
-    height={a.height}
+              height={a.height}
               isWall={false}
               isSelected={selectedId === a.id}
               onSelect={() => setSelectedId(a.id)}
+              onDelete={() => onDelete?.(a.id)}
+              onEditSize={() => onEditSize?.(a.id)}
             />
           ))}
         </Layer>
