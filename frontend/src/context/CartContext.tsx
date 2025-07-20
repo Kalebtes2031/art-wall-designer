@@ -6,9 +6,10 @@ import type { Cart } from '../types/Cart';
 interface CartContextType {
   cart: Cart | null;
   loading: boolean;
-  addToCart: (productId: string, quantity?: number) => Promise<void>;
-  updateItem: (productId: string, quantity: number) => Promise<void>;
-  removeFromCart: (productId: string) => Promise<void>;
+  addToCart: (productId: string, quantity?: number, sizeIndex?: number) => Promise<void>;
+  updateItem: (productId: string, quantity: number, sizeIndex?: number) => Promise<void>;
+  removeFromCart: (productId: string, sizeIndex: number) => Promise<void>;
+  decrementCartItem: (productId: string, sizeIndex: number) => Promise<void>;
   refreshCart: () => Promise<void>;
 }
 
@@ -18,15 +19,15 @@ const CartContext = createContext<CartContextType>({
   addToCart: async () => {},
   updateItem: async () => {},
   removeFromCart: async () => {},
+  decrementCartItem: async () => {},
   refreshCart: async () => {},
 });
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { fetchCart, setItem, removeItem } = useCartApi();
+  const { fetchCart, setItem, removeItem, decrementItem } = useCartApi();
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // initial load
   const load = async () => {
     setLoading(true);
     try {
@@ -43,27 +44,34 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     load();
   }, []);
 
-  const addToCart = async (productId: string, quantity = 1) => {
-    const existing = cart?.items.find(i => i.product._id === productId);
-   const newQty   = (existing?.quantity || 0) + quantity;
-   await setItem(productId, newQty);
+  const addToCart = async (
+    productId: string,
+    quantity = 1,
+    sizeIndex?: number
+  ) => {
+    const existing = cart?.items.find(i => i.product._id === productId && i.sizeIndex === sizeIndex);
+    const newQty = (existing?.quantity || 0) + quantity;
+    await setItem(productId, newQty, sizeIndex);
     await load();
   };
 
-  const updateItem = async (productId: string, quantity: number) => {
-    await setItem(productId, quantity);
+  const updateItem = async (productId: string, quantity: number, sizeIndex?: number) => {
+    await setItem(productId, quantity, sizeIndex);
     await load();
   };
 
-  const removeFromCart = async (productId: string) => {
-    await removeItem(productId);
+  const decrementCartItem = async (productId: string, sizeIndex: number) => {
+  await decrementItem(productId, sizeIndex);
+  await load();
+};
+
+  const removeFromCart = async (productId: string, sizeIndex: number) => {
+    await removeItem(productId, sizeIndex);
     await load();
   };
-
-  const refreshCart = load;
 
   return (
-    <CartContext.Provider value={{ cart, loading, addToCart, updateItem, removeFromCart, refreshCart }}>
+    <CartContext.Provider value={{ cart, loading, addToCart, updateItem, decrementCartItem, removeFromCart, refreshCart: load }}>
       {children}
     </CartContext.Provider>
   );

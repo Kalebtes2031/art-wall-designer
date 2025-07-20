@@ -1,10 +1,9 @@
 // pages/Designer.tsx
 import { useState, useEffect } from "react";
 import ProductSidebar from "../components/ProductSidebar";
-import type { Product } from "../types/Product";
+import type { Product, Size } from "../types/Product";
 import WallUploader from "../components/WallUploader";
 import CanvasArea from "../components/CanvasArea";
-import { v4 as uuidv4 } from "uuid";
 import CartFooter from "../components/CartFooter";
 import { useCart } from "../context/CartContext";
 
@@ -18,111 +17,144 @@ export default function Designer() {
       y: number;
       width: number;
       height: number;
+      productId: string;
+      sizeIndex: number;
     }[]
   >([]);
 
-  const [current, setCurrent] = useState<Product | null>(null);
+  // currently selected product + size
+  const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
+  const [currentSizeIndex, setCurrentSizeIndex] = useState<number>(0);
   const [uploadWall, setUploadWall] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  // canvas dimensions
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-
-  
-  const { cart, addToCart } = useCart();
-
-  // Get available canvas dimensions
   useEffect(() => {
-    const updateDimensions = () => {
+    const updateDims = () =>
       setDimensions({
         width: window.innerWidth - 320,
         height: window.innerHeight - 40,
       });
-    };
-
-    updateDimensions();
-    window.addEventListener("resize", updateDimensions);
-
-    return () => window.removeEventListener("resize", updateDimensions);
+    updateDims();
+    window.addEventListener("resize", updateDims);
+    return () => window.removeEventListener("resize", updateDims);
   }, []);
 
-    // derive placed array from cart items
+  // cart context
+  const { cart, addToCart, refreshCart, removeFromCart, decrementCartItem } = useCart();
+
+  // derive placed items from cart
   useEffect(() => {
-    if (!cart) {
-      setPlaced([]);
-      return;
-    }
-    const defaultW = 200;
-    const defaultH = 200;
+    if (!cart) return setPlaced([]);
+
+    const CM_TO_PX = dimensions.width / 500;
     const arr: typeof placed = [];
-    cart.items.forEach(({ product, quantity }) => {
+
+    cart.items.forEach(({ product, quantity, sizeIndex }) => {
+      const size = product.sizes[sizeIndex];
+      const pxW = size.widthCm * CM_TO_PX;
+      const pxH = size.heightCm * CM_TO_PX;
+
       for (let i = 0; i < quantity; i++) {
         arr.push({
-          id: `${product._id}-${i}`,
+          id: `${product._id}-${sizeIndex}-${i}`,
           src: product.transparentUrl || product.imageUrl,
-          x: dimensions.width / 2 - defaultW / 2,
-          y: dimensions.height / 2 - defaultH / 2,
-          width: defaultW,
-          height: defaultH,
+          x: dimensions.width / 2 - pxW / 2,
+          y: dimensions.height / 2 - pxH / 2,
+          width: pxW,
+          height: pxH,
+          productId: product._id,
+          sizeIndex,
         });
       }
     });
+
     setPlaced(arr);
   }, [cart, dimensions]);
 
-  const handleAdd = async () => {
-    if (!current) return;
+  // when sidebar selects a product+size
+  const handleSidebarSelect = (p: Product, s: Size, idx: number) => {
+    setCurrentProduct(p);
+    setCurrentSizeIndex(idx);
+  };
+
+  // add one to cart
+  const handleAddToWall = async () => {
+    if (!currentProduct) return;
     try {
-      await addToCart(current._id, 1);
+      await addToCart(currentProduct._id, 1, currentSizeIndex);
+      await refreshCart();
+      // rebuildPlacedFromCart(cart) called in useEffect watching cart, so no need here
     } catch (err) {
       console.error("Failed to add to cart:", err);
     }
   };
 
-  const addArt = async () => {
-    if (current) {
-      try {
-        await addToCart(current._id, 1);
-      } catch (err) {
-        console.error("Failed to add to cart:", err);
-      }
-      const defaultWidth = 200;
-      const defaultHeight = 200;
-      setPlaced((prev) => [
-        ...prev,
-        {
-          id: uuidv4(),
-          src: current.transparentUrl || current.imageUrl,
-          x: dimensions.width / 2 - defaultWidth / 2,
-          y: dimensions.height / 2 - defaultHeight / 2,
-          width: defaultWidth,
-          height: defaultHeight,
-        },
-      ]);
+  // delete from placed
+  const handleDelete = async (placedId: string) => {
+    if (!cart) return;
+
+    const parts = placedId.split("-");
+    const productId = parts[0];
+    const sizeIndex = Number(parts[1]);
+
+    try {
+      await decrementCartItem(productId, sizeIndex);
+      await refreshCart();
+      setPlaced((prev) => prev.filter((p) => p.id !== placedId));
+    } catch (err) {
+      console.error("Error removing item from cart:", err);
     }
   };
+
+  // rebuild placed from cart helper (called by useEffect)
+  // const rebuildPlacedFromCart = (cartData: typeof cart) => {
+  //   const CM_TO_PX = 5;
+  //   const arr: typeof placed = [];
+  //   cartData?.items.forEach(({ product, quantity, sizeIndex }) => {
+  //     const size = product.sizes[sizeIndex];
+  //     const pxW = size.widthCm * CM_TO_PX;
+  //     const pxH = size.heightCm * CM_TO_PX;
+  //     for (let i = 0; i < quantity; i++) {
+  //       arr.push({
+  //         id: `${product._id}-${sizeIndex}-${i}`,
+  //         src: product.transparentUrl || product.imageUrl,
+  //         x: dimensions.width / 2 - pxW / 2,
+  //         y: dimensions.height / 2 - pxH / 2,
+  //         width: pxW,
+  //         height: pxH,
+  //         productId: product._id,
+  //         sizeIndex,
+  //       });
+  //     }
+  //   });
+  //   setPlaced(arr);
+  // };
+
+  // useEffect(() => {
+  //   rebuildPlacedFromCart(cart);
+  // }, [cart, dimensions]);
 
   return (
     <>
       <div className="flex h-[660px] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
         {/* Sidebar */}
-        <div className="w-80 bg-white shadow-xl rounded-r-2xl px-2 flex flex-col space-y-2 z-10">
-          {/* <div className="flex items-center justify-between border-b pb-4">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            ArtWall Designer
-          </h1>
-          <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16" />
-        </div> */}
-          <div className="flex justify-center items-center border-b rounded-lg p-2 bg-gradient-to-r from-blue-200 to-gray-500 scrollbar-thin">
+        <div className="w-80 bg-white shadow-xl rounded-r-2xl p-2 flex flex-col space-y-2 z-10">
+          <div
+            onClick={() => setUploadWall((prev) => !prev)} // toggle on click
+            className="flex justify-center items-center border-b rounded-lg p-2 bg-gradient-to-r from-blue-200 to-gray-500 scrollbar-thin"
+          >
             <h2
-              onClick={() => setUploadWall((prev) => !prev)} // toggle on click
               style={{
                 cursor: "pointer",
                 color: uploadWall ? "blue" : "black",
-              }} // optional visual cue
+              }}
             >
-              Upload Wall {uploadWall ? "▲" : "▼"} {/* toggle indicator */}
+              Upload Wall {uploadWall ? "▲" : "▼"}
             </h2>
           </div>
           {uploadWall && <WallUploader onUpload={setWallUrl} />}
-
           <div className="flex-1 overflow-y-auto flex flex-col py-6  bg-gradient-to-r from-blue-200 to-gray-500 rounded-lg">
             <div className="flex items-center justify-between mb-3 px-3">
               <h2 className="text-lg font-semibold text-gray-700">
@@ -132,12 +164,41 @@ export default function Designer() {
                 {cart?.items.reduce((s, i) => s + i.quantity, 0) || 0} placed
               </span>
             </div>
-            <ProductSidebar onSelect={setCurrent} />
+            <ProductSidebar
+              selectedProduct={currentProduct}
+              selectedSizeIndex={currentSizeIndex}
+              onSelect={handleSidebarSelect}
+              editingProductId={
+                editingId
+                  ? placed.find((p) => p.id === editingId)?.productId
+                  : undefined
+              }
+              editingSizeIndex={
+                editingId
+                  ? placed.find((p) => p.id === editingId)?.sizeIndex
+                  : undefined
+              }
+              onEditSize={(productId, newSizeIndex) => {
+                setPlaced((prev) =>
+                  prev.map((p) =>
+                    p.id === editingId
+                      ? {
+                          ...p,
+                          width:
+                            currentProduct!.sizes[newSizeIndex].widthCm * 5,
+                          height:
+                            currentProduct!.sizes[newSizeIndex].heightCm * 5,
+                          sizeIndex: newSizeIndex,
+                        }
+                      : p
+                  )
+                );
+              }}
+            />
           </div>
-
           <button
-            onClick={handleAdd}
-            disabled={!current}
+            onClick={handleAddToWall}
+            disabled={!currentProduct}
             className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold rounded-lg shadow-md transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
           >
             <svg
@@ -156,47 +217,19 @@ export default function Designer() {
           </button>
         </div>
 
-        {/* Canvas Area */}
-        <div className="flex-1 relative overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300 p-4">
-          {wallUrl ? (
-            <CanvasArea
-              wallUrl={wallUrl}
-              artworks={placed}
-              width={dimensions.width}
-              height={dimensions.height}
-            />
-          ) : (
-            <div className="flex items-center justify-center h-full w-full">
-              <div className="text-center max-w-md">
-                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-gray-700 mb-2">
-                  Upload Your Wall
-                </h2>
-                <p className="text-gray-500 mb-6">
-                  Start by uploading a photo of your wall. Then browse our art
-                  collection and drag pieces onto your wall to visualize them.
-                </p>
-                <div className="animate-bounce inline-block">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-8 w-8 text-blue-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 8l4 4m0 0l-4 4m4-4H3"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          )}
+        {/* Canvas */}
+        <div className="flex-1 p-4 bg-gray-300">
+          <CanvasArea
+            wallUrl={wallUrl}
+            artworks={placed}
+            width={dimensions.width}
+            height={dimensions.height}
+            onEditSize={(id) => setEditingId(id)}
+            onDelete={handleDelete} // <-- add this line
+          />
         </div>
       </div>
+
       <CartFooter />
     </>
   );

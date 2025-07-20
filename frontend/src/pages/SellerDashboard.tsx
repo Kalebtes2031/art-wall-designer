@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import api from "../utils/api";
 import { useAuth } from "../context/AuthContext";
+import type { Product, Size } from "../types/Product";
 import {
   FiEdit,
   FiTrash2,
@@ -27,28 +28,23 @@ interface Order {
   }[];
 }
 
-interface ProductRecord {
-  _id: string;
-  title: string;
-  description?: string;
-  price: number;
-  imageUrl: string;
-  orientation: string;
-  widthCm: number;
-  heightCm: number;
-}
 
 export default function SellerDashboard() {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [products, setProducts] = useState<ProductRecord[]>([]);
-  const [form, setForm] = useState({
+  const [products, setProducts] = useState<Product[]>([]);
+  const [form, setForm] = useState<{
+    title: string;
+    description: string;
+    price: string;
+    orientation: "portrait" | "landscape";
+    sizes: Size[];
+  }>({
     title: "",
     description: "",
     price: "",
-    width: "",
-    height: "",
     orientation: "portrait",
+    sizes: [{ widthCm: 0, heightCm: 0 }],
   });
   const [file, setFile] = useState<File | null>(null);
   const [loadingOrders, setLoadingOrders] = useState(false);
@@ -60,9 +56,8 @@ export default function SellerDashboard() {
     title: string;
     description: string;
     price: string;
-    width: string;
-    height: string;
     orientation: "portrait" | "landscape";
+    sizes: Size[];
   } | null>(null);
   const [editFile, setEditFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -99,16 +94,51 @@ export default function SellerDashboard() {
     fetchProducts();
   }, []);
 
+  // Add a blank size row
+  const addSizeRow = () =>
+    setForm((f) => ({
+      ...f,
+      sizes: [...f.sizes, { widthCm: 0, heightCm: 0 }],
+    }));
+
+  // Remove a size row
+  const removeSizeRow = (idx: number) =>
+    setForm((f) => ({
+      ...f,
+      sizes: f.sizes.filter((_, i) => i !== idx),
+    }));
+
+  // Update a size value
+  const updateSize = (
+    idx: number,
+    key: "widthCm" | "heightCm",
+    value: number
+  ) =>
+    setForm((f) => {
+      const sizes = [...f.sizes];
+      sizes[idx] = { ...sizes[idx], [key]: value };
+      return { ...f, sizes };
+    });
+
   const submitProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreating(true);
+    if (form.sizes.some((s) => s.widthCm <= 0 || s.heightCm <= 0)) {
+      alert("Please enter valid positive dimensions for all sizes.");
+      setCreating(false);
+      return;
+    }
+    if (!form.title || !form.price || !file) {
+      alert("Title, price, and image are required.");
+      setCreating(false);
+      return;
+    }
     const fd = new FormData();
     fd.append("title", form.title);
     fd.append("description", form.description);
     fd.append("price", form.price);
-    fd.append("widthCm", form.width);
-    fd.append("heightCm", form.height);
     fd.append("orientation", form.orientation);
+    fd.append("sizes", JSON.stringify(form.sizes));
     if (file) fd.append("image", file);
 
     try {
@@ -118,9 +148,8 @@ export default function SellerDashboard() {
         title: "",
         description: "",
         price: "",
-        width: "",
-        height: "",
         orientation: "portrait",
+        sizes: [{ widthCm: 0, heightCm: 0 }],
       });
       setFile(null);
     } catch (err) {
@@ -131,15 +160,14 @@ export default function SellerDashboard() {
   };
 
   // Start editing a product
-  const startEditing = (product: ProductRecord) => {
+  const startEditing = (product: Product) => {
     setEditingProductId(product._id);
     setEditForm({
       title: product.title,
       description: product.description || "",
       price: product.price.toString(),
-      width: product.widthCm.toString(),
-      height: product.heightCm.toString(),
       orientation: product.orientation as "portrait" | "landscape",
+      sizes: [...product.sizes],
     });
     setEditFile(null);
   };
@@ -164,25 +192,40 @@ export default function SellerDashboard() {
 
       const fd = new FormData();
 
-      // Only append changed fields
+      // Compare and append only changed fields
       if (editForm.title !== originalProduct.title) {
         fd.append("title", editForm.title);
       }
-      if (editForm.description !== (originalProduct.description || "")) {
-        fd.append("description", editForm.description);
+
+      if (
+        (editForm.description || "") !== (originalProduct.description || "")
+      ) {
+        fd.append("description", editForm.description || "");
       }
+
       if (parseFloat(editForm.price) !== originalProduct.price) {
         fd.append("price", editForm.price);
       }
-      if (parseFloat(editForm.width) !== originalProduct.widthCm) {
-        fd.append("widthCm", editForm.width);
-      }
-      if (parseFloat(editForm.height) !== originalProduct.heightCm) {
-        fd.append("heightCm", editForm.height);
-      }
+
       if (editForm.orientation !== originalProduct.orientation) {
         fd.append("orientation", editForm.orientation);
       }
+
+      // Sizes comparison
+      const sizesChanged =
+        editForm.sizes.length !== originalProduct.sizes.length ||
+        editForm.sizes.some((size, i) => {
+          const original = originalProduct.sizes[i];
+          return (
+            size.widthCm !== original?.widthCm ||
+            size.heightCm !== original?.heightCm
+          );
+        });
+
+      if (sizesChanged) {
+        fd.append("sizes", JSON.stringify(editForm.sizes));
+      }
+
       if (editFile) {
         fd.append("image", editFile);
       }
@@ -192,7 +235,10 @@ export default function SellerDashboard() {
           headers: { "Content-Type": "multipart/form-data" },
         });
 
-        setProducts(products.map((p) => (p._id === productId ? res.data : p)));
+        // Replace product with updated version
+        setProducts((prev) =>
+          prev.map((p) => (p._id === productId ? res.data : p))
+        );
         cancelEditing();
       } catch (err) {
         console.error("Edit failed:", err);
@@ -279,6 +325,7 @@ export default function SellerDashboard() {
               onSubmit={submitProduct}
               className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6"
             >
+              {/* title */}
               <div>
                 <label
                   htmlFor="title"
@@ -298,7 +345,7 @@ export default function SellerDashboard() {
                   required
                 />
               </div>
-
+              {/* price */}
               <div>
                 <label
                   htmlFor="price"
@@ -325,7 +372,7 @@ export default function SellerDashboard() {
                   />
                 </div>
               </div>
-
+              {/* Description */}
               <div className="md:col-span-2">
                 <label
                   htmlFor="description"
@@ -345,66 +392,74 @@ export default function SellerDashboard() {
                 />
               </div>
 
+              {/* orientation   */}
               <div>
-                <label
-                  htmlFor="width"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Width (cm)
-                </label>
-                <input
-                  type="number"
-                  id="width"
-                  placeholder="Width in centimeters"
-                  value={form.width}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, width: e.target.value }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                  required
-                  min="0"
-                />
-              </div>
+            <label className="block text-sm font-medium mb-1">
+              Orientation
+            </label>
+            <select
+              value={form.orientation}
+              onChange={(e) =>
+                setForm((f) => ({
+                  ...f,
+                  orientation: e.target.value as "portrait" | "landscape",
+                }))
+              }
+              className="w-full border rounded px-3 py-2"
+            >
+              <option value="portrait">Portrait</option>
+              <option value="landscape">Landscape</option>
+            </select>
+          </div>
 
+              {/* sizes */}
               <div>
-                <label
-                  htmlFor="height"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Height (cm)
+                <label className="block text-sm font-medium mb-2">
+                  Sizes (cm)
                 </label>
-                <input
-                  type="number"
-                  id="height"
-                  placeholder="Height in centimeters"
-                  value={form.height}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, height: e.target.value }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                  required
-                  min="0"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="orientation"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Orientation
-                </label>
-                <select
-                  id="orientation"
-                  value={form.orientation}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, orientation: e.target.value }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                >
-                  <option value="portrait">Portrait</option>
-                  <option value="landscape">Landscape</option>
-                </select>
+                <div className="space-y-2">
+                  {form.sizes.map((s, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        placeholder="Width"
+                        value={s.widthCm}
+                        onChange={(e) =>
+                          updateSize(idx, "widthCm", Number(e.target.value))
+                        }
+                        required
+                        min={1}
+                        className="w-1/3 border rounded px-2 py-1"
+                      />
+                      <span className="text-gray-600">×</span>
+                      <input
+                        type="number"
+                        placeholder="Height"
+                        value={s.heightCm}
+                        onChange={(e) =>
+                          updateSize(idx, "heightCm", Number(e.target.value))
+                        }
+                        required
+                        min={1}
+                        className="w-1/3 border rounded px-2 py-1"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeSizeRow(idx)}
+                        className="p-1 text-red-500"
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addSizeRow}
+                    className="inline-flex items-center px-3 py-1 bg-green-500 text-white rounded"
+                  >
+                    <FiPlus className="mr-1" /> Add Size
+                  </button>
+                </div>
               </div>
 
               <div className="md:col-span-2">
@@ -559,46 +614,80 @@ export default function SellerDashboard() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-xs text-gray-700 mb-1">
-                              Width (cm)
-                            </label>
-                            <input
-                              type="number"
-                              placeholder="Width"
-                              value={editForm?.width || ""}
-                              onChange={(e) =>
-                                setEditForm((f) => ({
-                                  ...f!,
-                                  width: e.target.value,
-                                }))
-                              }
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                              required
-                              min="0"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs text-gray-700 mb-1">
-                              Height (cm)
-                            </label>
-                            <input
-                              type="number"
-                              placeholder="Height"
-                              value={editForm?.height || ""}
-                              onChange={(e) =>
-                                setEditForm((f) => ({
-                                  ...f!,
-                                  height: e.target.value,
-                                }))
-                              }
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                              required
-                              min="0"
-                            />
-                          </div>
+                        <div>
+                          <label className="block text-xs text-gray-700 mb-1">
+                            Sizes (cm)
+                          </label>
+                          {editForm?.sizes.map((size, idx) => (
+                            <div
+                              key={idx}
+                              className="flex items-center gap-2 mb-2"
+                            >
+                              <input
+                                type="number"
+                                placeholder="Width"
+                                value={size.widthCm}
+                                onChange={(e) => {
+                                  const value = parseFloat(e.target.value);
+                                  setEditForm((f) => {
+                                    const sizes = [...f!.sizes];
+                                    sizes[idx] = {
+                                      ...sizes[idx],
+                                      widthCm: value,
+                                    };
+                                    return { ...f!, sizes };
+                                  });
+                                }}
+                                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                                min="1"
+                              />
+                              <input
+                                type="number"
+                                placeholder="Height"
+                                value={size.heightCm}
+                                onChange={(e) => {
+                                  const value = parseFloat(e.target.value);
+                                  setEditForm((f) => {
+                                    const sizes = [...f!.sizes];
+                                    sizes[idx] = {
+                                      ...sizes[idx],
+                                      heightCm: value,
+                                    };
+                                    return { ...f!, sizes };
+                                  });
+                                }}
+                                className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
+                                min="1"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditForm((f) => ({
+                                    ...f!,
+                                    sizes: f!.sizes.filter((_, i) => i !== idx),
+                                  }));
+                                }}
+                                className="text-red-500 text-sm"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setEditForm((f) => ({
+                                ...f!,
+                                sizes: [
+                                  ...f!.sizes,
+                                  { widthCm: 0, heightCm: 0 },
+                                ],
+                              }))
+                            }
+                            className="text-sm text-indigo-600 hover:underline"
+                          >
+                            + Add Size
+                          </button>
                         </div>
 
                         <div>
@@ -693,9 +782,11 @@ export default function SellerDashboard() {
                             {product.description}
                           </p>
                           <div className="mt-3 flex justify-between text-sm text-gray-600">
-                            <span>
-                              {product.widthCm} × {product.heightCm} cm
-                            </span>
+                            <div className="text-sm text-gray-500">
+                              {product.sizes
+                                .map((s) => `${s.widthCm}×${s.heightCm}cm`)
+                                .join(", ")}
+                            </div>
                             <span className="capitalize">
                               {product.orientation}
                             </span>

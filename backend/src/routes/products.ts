@@ -54,10 +54,16 @@ router.post(
   requireAuth('seller'), 
   upload.single('image'),               // ← parse a single file field named "image"
   async (req, res) => {
-    // Multer has populated:
-    //   req.body  -> { title, description, widthCm, heightCm }
-    //   req.file  -> the uploaded file
-    const { title, description, price, widthCm, heightCm } = req.body;
+   const { title, description, price, orientation } = req.body;
+    let sizes;
+    try {
+      sizes = JSON.parse(req.body.sizes);
+      if (!Array.isArray(sizes) || sizes.some(s => !s.widthCm || !s.heightCm)) {
+        throw new Error();
+      }
+    } catch {
+      return res.status(400).json({ error: 'Invalid sizes array (JSON)' });
+    }
     if (!title || !req.file  || !price) {
       return res.status(400).json({ error: 'seller info, price and image are required' });
     }
@@ -73,8 +79,8 @@ router.post(
         price,
         imageUrl,
         transparentUrl: imageUrl,
-        widthCm: widthCm ? Number(widthCm) : undefined,
-        heightCm: heightCm ? Number(heightCm) : undefined,
+        orientation: orientation || 'portrait',
+        sizes,
       });
       res.status(201).json(newProduct);
     } catch (err) {
@@ -108,15 +114,29 @@ router.patch(
     }
 
     // 2. Apply only provided fields:
-    const { title, description, price, widthCm, heightCm, orientation } = req.body;
-    if (title != null)         product.title       = title;
-    if (description != null)   product.description = description;
-    if (price != null)         product.price       = Number(price);
-    if (widthCm != null)       product.widthCm     = Number(widthCm);
-    if (heightCm != null)      product.heightCm    = Number(heightCm);
-    if (orientation != null)   product.orientation = orientation;
+    const { title, description, price, orientation } = req.body;
+    if (title != null) product.title = title;
+    if (description != null) product.description = description;
+    if (price != null) product.price = Number(price);
+    if (orientation != null) product.orientation = orientation;
 
-    // 3. Handle optional new image:
+    // 3. update sizes if provided
+    if (req.body.sizes) {
+      let newSizes;
+      try {
+        newSizes = JSON.parse(req.body.sizes);
+        if (!Array.isArray(newSizes) || newSizes.some(s => typeof s.widthCm !== 'number' || typeof s.heightCm !== 'number')) {
+          throw new Error();
+        }
+      } catch {
+        return res.status(400).json({ error: 'Invalid sizes array (JSON)' });
+      }
+      // replace DocumentArray contents safely
+      product.sizes.splice(0, product.sizes.length);
+      newSizes.forEach(s => product.sizes.push(s));
+    }
+
+    // 4. Handle optional new image:
     if (req.file) {
       const imageUrl = `/uploads/${req.file.filename}`;
       product.imageUrl       = imageUrl;
