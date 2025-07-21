@@ -29,7 +29,7 @@ export default function Navbar() {
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
         isScrolled
           ? "bg-white/90 backdrop-blur-md shadow-md py-2 h-[56px]"
-          : "bg-gradient-to-r from-blue-50 to-indigo-50 py-3 h-[56px]"
+          : "bg-[#D7D7D7] py-3 h-[56px]"
       }`}
     >
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-full">
