@@ -12,6 +12,8 @@ interface CanvasAreaProps {
   height: number;
   onDelete?: (placedId: string) => void;
   onEditSize?: (placedId: string) => void;
+  onSelectArtwork?: (artworkId: string | null) => void;
+  onMove?: (id: string, x: number, y: number) => void;
 }
 
 export default function CanvasArea({
@@ -21,12 +23,14 @@ export default function CanvasArea({
   height,
   onDelete,
   onEditSize,
+  onSelectArtwork,
+  onMove,
 }: CanvasAreaProps) {
   const [wallImage] = useImage(wallUrl);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [selectedId, setSelectedId] = useState<string | null>(null);
-
+  const leftMargin = 40;
   // Fit wall image into canvas with correct scaling and centering
   useEffect(() => {
     if (!wallImage) return;
@@ -39,7 +43,7 @@ export default function CanvasArea({
       newOffset.y = (height - wallImage.height * newScale) / 2;
     } else {
       newScale = height / wallImage.height;
-      newOffset.x = (width - wallImage.width * newScale) / 2;
+      newOffset.x = (width - wallImage.width * newScale) / 2 + leftMargin;
     }
     setScale(newScale);
     setOffset(newOffset);
@@ -55,6 +59,7 @@ export default function CanvasArea({
           // Deselect any selected artwork if clicking outside
           if (e.target === e.target.getStage()) {
             setSelectedId(null);
+            onSelectArtwork?.(null);
           }
         }}
       >
@@ -84,9 +89,13 @@ export default function CanvasArea({
               height={a.height}
               isWall={false}
               isSelected={selectedId === a.id}
-              onSelect={() => setSelectedId(a.id)}
+              onSelect={() => {
+                setSelectedId(a.id)
+                onSelectArtwork?.(a.id);
+              }}
               onDelete={() => onDelete?.(a.id)}
               onEditSize={() => onEditSize?.(a.id)}
+              onMove={onMove}        
             />
           ))}
         </Layer>
