@@ -10,39 +10,38 @@ import SizeModal from "../components/SizeModal";
 
 export default function Designer() {
   const [wallUrl, setWallUrl] = useState("/wall.jpg");
-  const [placed, setPlaced] = useState<
-    {
-      id: string;
-      src: string;
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-      productId: string;
-      sizeIndex: number;
-    }[]
-  >([]);
+  const [placed, setPlaced] = useState<Array<{
+    id: string;
+    src: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    productId: string;
+    sizeIndex: number;
+  }>>([]);
 
   // currently selected product + size
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
   const [currentSizeIndex, setCurrentSizeIndex] = useState<number>(0);
   const [uploadWall, setUploadWall] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [selectedArtworkId, setSelectedArtworkId] = useState<string | null>(
-    null
-  );
+  const [selectedArtworkId, setSelectedArtworkId] = useState<string | null>(null);
   const [showSizeModal, setShowSizeModal] = useState(false);
 
   const selectedArtwork = placed.find((p) => p.id === selectedArtworkId);
-  // canvas dimensions
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+  // 1) Initialize dimensions synchronously to avoid {0,0}
+  const [dimensions, setDimensions] = useState({
+    width: window.innerWidth - 360,
+    height: window.innerHeight - 40,
+  });
   useEffect(() => {
     const updateDims = () =>
       setDimensions({
         width: window.innerWidth - 360,
         height: window.innerHeight - 40,
       });
-    updateDims();
     window.addEventListener("resize", updateDims);
     return () => window.removeEventListener("resize", updateDims);
   }, []);
@@ -50,58 +49,74 @@ export default function Designer() {
   // cart context
   const { cart, addToCart, refreshCart, decrementCartItem } = useCart();
 
-  // derive placed items from cart
-useEffect(() => {
-  if (!cart) return;
-  const CM_TO_PX = dimensions.width / 500;
-
-  setPlaced(prev => {
-    const existing = new Set(prev.map(p => p.id));
-    const additions: typeof placed = [];
-
-    cart.items.forEach(({ product, quantity, sizeIndex }) => {
-      const size = product.sizes[sizeIndex];
-      const pxW = size.widthCm * CM_TO_PX,
-            pxH = size.heightCm * CM_TO_PX;
-
-      for (let i = 0; i < quantity; i++) {
-        const id = `${product._id}-${sizeIndex}-${i}`;
-        if (!existing.has(id)) {
-          additions.push({
-            id, src: product.imageUrl,
-            x: dimensions.width/2 - pxW/2,
-            y: dimensions.height/2 - pxH/2,
-            width: pxW, height: pxH,
-            productId: product._id,
-            sizeIndex,
-          });
-        }
-      }
+  // MOVE handler persists updated coords
+  const handleMove = (id: string, x: number, y: number) => {
+    setPlaced((prev) => {
+      const updated = prev.map((p) => (p.id === id ? { ...p, x, y } : p));
+      localStorage.setItem("placedPositions", JSON.stringify(updated));
+      return updated;
     });
+  };
 
-    const merged = [...prev, ...additions];
-    localStorage.setItem("placedPositions", JSON.stringify(merged));
-    return merged;
-  });
-}, [cart, dimensions]);
+  // 2) On mount, hydrate from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("placedPositions");
+    if (saved) {
+      try {
+        setPlaced(JSON.parse(saved));
+      } catch {}
+    }
+  }, []);
 
-const handleMove = (id: string, x: number, y: number) => {
-  setPlaced(prev => {
-    const updated = prev.map(p => (p.id === id ? { ...p, x, y } : p));
-    localStorage.setItem("placedPositions", JSON.stringify(updated));
-    return updated;
-  });
-};
+  // 3) Sync cart → placed + persist back to localStorage, only when dims are valid
+  useEffect(() => {
+    if (!cart) return;
+    if (dimensions.width === 0 || dimensions.height === 0) return;
 
-useEffect(() => {
-  const saved = localStorage.getItem("placedPositions");
-  if (saved) {
-    try {
-      setPlaced(JSON.parse(saved));
-    } catch {}
-  }
-}, []); // empty deps: run once
+    const CM_TO_PX = dimensions.width / 500;
 
+    setPlaced((prev) => {
+      // build desired set
+      const desired = new Set<string>();
+      cart.items.forEach(({ product, quantity, sizeIndex }) => {
+        for (let i = 0; i < quantity; i++) {
+          desired.add(`${product._id}-${sizeIndex}-${i}`);
+        }
+      });
+
+      // prune out unneeded
+      const pruned = prev.filter((p) => desired.has(p.id));
+
+      // append any missing
+      const existing = new Set(pruned.map((p) => p.id));
+      const additions: typeof pruned = [];
+      cart.items.forEach(({ product, quantity, sizeIndex }) => {
+        const size = product.sizes[sizeIndex];
+        const pxW = size.widthCm * CM_TO_PX;
+        const pxH = size.heightCm * CM_TO_PX;
+
+        for (let i = 0; i < quantity; i++) {
+          const id = `${product._id}-${sizeIndex}-${i}`;
+          if (!existing.has(id)) {
+            additions.push({
+              id,
+              src: product.imageUrl,
+              x: dimensions.width / 2 - pxW / 2,
+              y: dimensions.height / 2 - pxH / 2,
+              width: pxW,
+              height: pxH,
+              productId: product._id,
+              sizeIndex,
+            });
+          }
+        }
+      });
+
+      const merged = [...pruned, ...additions];
+      localStorage.setItem("placedPositions", JSON.stringify(merged));
+      return merged;
+    });
+  }, [cart, dimensions]);
 
   // when sidebar selects a product+size
   const handleSidebarSelect = (p: Product, s: Size, idx: number) => {
@@ -109,45 +124,38 @@ useEffect(() => {
     setCurrentSizeIndex(idx);
   };
 
-  // add one to cart
+  // add one to cart (sync effect will append it)
   const handleAddToWall = async () => {
-    console.log("🔔 handleAddToWall fired, currentProduct:", currentProduct, "sizeIndex:", currentSizeIndex);
-  if (!currentProduct) return;
+    if (!currentProduct) return;
     try {
       await addToCart(currentProduct._id, 1, currentSizeIndex);
       await refreshCart();
-      // rebuildPlacedFromCart(cart) called in useEffect watching cart, so no need here
     } catch (err) {
       console.error("Failed to add to cart:", err);
     }
   };
 
-  // delete from placed
+  // delete via cart decrement (sync effect will prune it)
   const handleDelete = async (placedId: string) => {
     if (!cart) return;
-
-    const parts = placedId.split("-");
-    const productId = parts[0];
-    const sizeIndex = Number(parts[1]);
-
+    const [productId, idx] = placedId.split("-");
+    const sizeIndex = Number(idx);
     try {
       await decrementCartItem(productId, sizeIndex);
       await refreshCart();
-      setPlaced((prev) => prev.filter((p) => p.id !== placedId));
+      // no manual setPlaced here!
     } catch (err) {
       console.error("Error removing item from cart:", err);
     }
   };
 
-  const CM_TO_PX = dimensions.width / 500;
-
   return (
     <>
-      <div className="flex w-full h-[660px] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
+      <div className="flex w-full h-[660px] bg-white overflow-hidden">
         {/* Sidebar */}
-        <div className="w-[360px] bg-red-500 shadow-xl rounded-r-2xl p-2 flex flex-col space-y-2 z-10">
+        <div className="w-[360px] shadow-xl  rounded-r-2xl px-2 flex flex-col space-y-2 z-10">
           <div
-            onClick={() => setUploadWall((prev) => !prev)} // toggle on click
+            onClick={() => setUploadWall((prev) => !prev)}
             className="flex justify-center items-center border-b rounded-lg p-2 bg-gradient-to-r from-blue-200 to-gray-500 scrollbar-thin"
           >
             <h2
@@ -160,7 +168,7 @@ useEffect(() => {
             </h2>
           </div>
           {uploadWall && <WallUploader onUpload={setWallUrl} />}
-          <div className="flex-1 overflow-y-auto flex flex-col py-6  bg-gradient-to-r from-blue-200 to-gray-500 rounded-lg">
+          <div className="flex-1 overflow-y-auto flex flex-col py-6 bg-gradient-to-r from-blue-200 to-gray-500 rounded-lg">
             <div className="flex items-center justify-between mb-3 px-3">
               <h2 className="text-lg font-semibold text-gray-700">
                 Art Collection
@@ -192,9 +200,11 @@ useEffect(() => {
                       ? {
                           ...p,
                           width:
-                            currentProduct!.sizes[newSizeIndex].widthCm * 5,
+                            currentProduct!.sizes[newSizeIndex].widthCm *
+                            (dimensions.width / 500),
                           height:
-                            currentProduct!.sizes[newSizeIndex].heightCm * 5,
+                            currentProduct!.sizes[newSizeIndex].heightCm *
+                            (dimensions.width / 500),
                           sizeIndex: newSizeIndex,
                         }
                       : p
@@ -215,14 +225,12 @@ useEffect(() => {
                 }
                 onClose={() => {
                   setShowSizeModal(false);
-                  setEditingId(null); // optional: clear selected
+                  setEditingId(null);
                 }}
                 onEditSize={(productId, newSizeIndex) => {
-                  // lookup the chosen size
                   const newSize = currentProduct.sizes[newSizeIndex];
-                  // compute in px using the same CM_TO_PX
-                  const newPxW = newSize.widthCm * CM_TO_PX;
-                  const newPxH = newSize.heightCm * CM_TO_PX;
+                  const newPxW = newSize.widthCm * (dimensions.width / 500);
+                  const newPxH = newSize.heightCm * (dimensions.width / 500);
 
                   setPlaced((prev) =>
                     prev.map((p) =>
@@ -264,32 +272,28 @@ useEffect(() => {
         {/* Canvas */}
         <div className="flex-1 bg-red-700">
           <CanvasArea
-          onMove={handleMove}
+            onMove={handleMove}
             wallUrl={wallUrl}
             artworks={placed}
             width={dimensions.width}
             height={dimensions.height}
             onEditSize={(id) => {
-              const selected = placed.find((p) => p.id === id);
-              if (!selected) return;
-
+              const sel = placed.find((p) => p.id === id);
+              if (!sel) return;
               setEditingId(id);
               setCurrentProduct(
-                cart?.items.find(
-                  (item) => item.product._id === selected.productId
-                )?.product || null
+                cart?.items.find((i) => i.product._id === sel.productId)
+                  ?.product || null
               );
-              setCurrentSizeIndex(selected.sizeIndex);
+              setCurrentSizeIndex(sel.sizeIndex);
               setShowSizeModal(true);
             }}
-            onDelete={handleDelete} // <-- add this line
+            onDelete={handleDelete}
             onSelectArtwork={(id) => {
               if (!id) {
-                // clicking empty wall → deselect + close
                 setSelectedArtworkId(null);
                 return;
               }
-              // exactly the same logic as onEditSize!
               const sel = placed.find((p) => p.id === id);
               if (!sel) return;
               setSelectedArtworkId(id);

@@ -8,27 +8,25 @@ import { toast } from 'react-hot-toast';
 import { FiTrash2, FiPlus, FiMinus, FiArrowLeft, FiShoppingBag } from 'react-icons/fi';
 
 export default function CartPage() {
-  const { fetchCart, setItem, removeItem } = useCartApi();
   const { createOrder } = useOrderApi();
-  const [cart, setCart] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+  // const [cart, setCart] = useState<any>(null);
   const [isRemoving, setIsRemoving] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { refreshCart } = useCart();
+  const { cart, loading, updateItem, removeFromCart, refreshCart } = useCart();
 
-  useEffect(() => {
-    const loadCart = async () => {
-      try {
-        const cartData = await fetchCart();
-        setCart(cartData);
-      } catch (error) {
-        toast.error('Failed to load cart');
-        console.error(error);
-      }
-    };
+  // useEffect(() => {
+  //   const loadCart = async () => {
+  //     try {
+  //       const cartData = await fetchCart();
+  //       setCart(cartData);
+  //     } catch (error) {
+  //       toast.error('Failed to load cart');
+  //       console.error(error);
+  //     }
+  //   };
     
-    loadCart();
-  }, [fetchCart]);
+  //   loadCart();
+  // }, [fetchCart]);
 
   const total = cart?.items?.reduce(
     (sum: number, i: any) => sum + i.quantity * i.product.price,
@@ -36,35 +34,34 @@ export default function CartPage() {
   ) ?? 0;
 
   const changeQty = async (id: string, qty: number, sizeIndex?: number) => {
-    if (qty < 1) return;
-    try {
-      setLoading(true);
-      const updated = await setItem(id, qty, sizeIndex);
-      setCart(updated);
-      await refreshCart();
-    } catch {
-      toast.error('Could not update quantity');
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (qty < 1) return;
+  try {
+    // this calls CartContext.updateItem → load() → context.cart changes
+    await updateItem(id, qty, sizeIndex);
+    toast.success("Quantity updated");
+    // no need to call refreshCart separately; updateItem already does it
+  } catch {
+    toast.error("Could not update quantity");
+  }
+};
 
-  const onRemove = async (id: string, sizeIndex?: number) => {
-    try {
-      setIsRemoving(id);
-      const updated = await removeItem(id, sizeIndex);
-      setCart(updated);
-      await refreshCart();
-      toast.success('Item removed from cart');
-    } catch {
-      toast.error('Could not remove item');
-    } finally {
-      setIsRemoving(null);
-    }
-  };
+const onRemove = async (id: string, sizeIndex: number) => {
+  try {
+    setIsRemoving(id);
+    // context.removeFromCart → load() → context.cart changes
+    await removeFromCart(id, sizeIndex);
+    toast.success("Item removed from cart");
+  } catch {
+    toast.error("Could not remove item");
+  } finally {
+    setIsRemoving(null);
+  }
+};
+
+
 
   const onCheckout = async () => {
-    setLoading(true);
+    // setLoading(true);
     try {
       await createOrder();
       toast.success('Order placed!');
@@ -72,7 +69,7 @@ export default function CartPage() {
     } catch {
       toast.error('Checkout failed');
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 
