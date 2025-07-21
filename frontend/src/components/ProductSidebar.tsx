@@ -10,8 +10,9 @@ interface ProductSidebarProps {
   editingProductId?: string;
   editingSizeIndex?: number;
   onEditSize?: (productId: string, newSizeIndex: number) => void;
+  showSizeOptions: boolean;
 }
-
+// 
 export default function ProductSidebar({
   selectedProduct,
   selectedSizeIndex,
@@ -19,11 +20,12 @@ export default function ProductSidebar({
   editingProductId,
   editingSizeIndex,
   onEditSize,
+  showSizeOptions,
 }: ProductSidebarProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
+  
   // Load products on mount
   useEffect(() => {
     setIsLoading(true);
@@ -71,7 +73,7 @@ export default function ProductSidebar({
   }
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col px-2">
       {/* Product Grid */}
       <div className="grid grid-cols-2 gap-3">
         {products.map((p) => (
@@ -102,13 +104,15 @@ export default function ProductSidebar({
       </div>
 
       {/* Size Picker */}
-      {selectedProduct && (
+      {/* {selectedProduct && showSizeOptions && (
+       <>
+       <div ></div>
         <div className="mt-4 p-3 bg-white rounded-lg border border-gray-200">
           <h3 className="mb-2 text-sm font-semibold text-gray-700">
             Choose a size
           </h3>
           <div className="flex flex-col space-y-2">
-            {selectedProduct.sizes.map((s, idx) => {
+            {showSizeOptions && selectedProduct?.sizes.map((s, idx) => {
               const isEditing = selectedProduct._id === editingProductId;
               const isSelected = isEditing
                 ? idx === editingSizeIndex
@@ -126,7 +130,7 @@ export default function ProductSidebar({
                   }}
                   className={`w-full text-left px-4 py-2 rounded text-sm transition-colors ${
                     isSelected
-                      ? "bg-blue-500 text-white"
+                    ? "bg-blue-500 text-white"
                       : "bg-gray-100 text-gray-800 hover:bg-gray-200"
                   }`}
                 >
@@ -136,7 +140,8 @@ export default function ProductSidebar({
             })}
           </div>
         </div>
-      )}
+      </>
+      )} */}
     </div>
   );
 }
