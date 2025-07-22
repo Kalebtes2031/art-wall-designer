@@ -39,7 +39,7 @@ export default function Designer() {
   useEffect(() => {
     const updateDims = () =>
       setDimensions({
-        width: window.innerWidth - 360,
+        width: window.innerWidth - 420,
         height: window.innerHeight - 40,
       });
     window.addEventListener("resize", updateDims);
@@ -149,14 +149,34 @@ export default function Designer() {
     }
   };
 
+  // ① New handler for immediate size‐change
+// const handleChangeSize = async (productId: string, newSizeIndex: number) => {
+//   if (!editingId || !cart) return;
+
+//   // parse old size index from editingId
+//   const [, oldSizeStr] = editingId.split("-");
+//   const oldSizeIndex = Number(oldSizeStr);
+
+//   // remove one of the old‐size items
+//   await decrementCartItem(productId, oldSizeIndex);
+//   // add one of the new‐size items
+//   await addToCart(productId, 1, newSizeIndex);
+//   // reload cart so our sync‐effect picks it up
+//   await refreshCart();
+
+//   // clear modal state
+//   // setShowSizeModal(false);
+//   setEditingId(null);
+// };
+
   return (
     <>
       <div className="flex w-full h-[660px] bg-white overflow-hidden">
         {/* Sidebar */}
-        <div className="w-[360px] shadow-xl  rounded-r-2xl px-2 flex flex-col space-y-2 z-10">
+        <div className="w-[420px] shadow-xl  rounded-r-2xl px-2 flex flex-col space-y-2  z-10">
           <div
             onClick={() => setUploadWall((prev) => !prev)}
-            className="flex justify-center items-center border-b rounded-lg p-2 bg-gradient-to-r from-blue-200 to-gray-500 scrollbar-thin"
+            className="flex justify-center items-center border-b rounded-lg p-2 cursor-pointer bg-gradient-to-r from-blue-200 to-gray-500 scrollbar-thin"
           >
             <h2
               style={{
@@ -245,10 +265,11 @@ export default function Designer() {
                     )
                   );
                 }}
+                // onEditSize={handleChangeSize}
               />
             )}
           </div>
-          <button
+          {/* <button
             onClick={handleAddToWall}
             disabled={!currentProduct}
             className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold rounded-lg shadow-md transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
@@ -266,7 +287,7 @@ export default function Designer() {
               />
             </svg>
             Add to Wall
-          </button>
+          </button> */}
         </div>
 
         {/* Canvas */}
