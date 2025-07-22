@@ -30,7 +30,7 @@ export default function CanvasArea({
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const leftMargin = 40;
+  const leftMargin = 100;
   // Fit wall image into canvas with correct scaling and centering
   useEffect(() => {
     if (!wallImage) return;

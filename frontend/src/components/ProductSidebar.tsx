@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import api from "../utils/api";
 import type { Product, Size } from "../types/Product";
+import { useCart } from "../context/CartContext";
 
 interface ProductSidebarProps {
   selectedProduct: Product | null;
@@ -12,7 +13,7 @@ interface ProductSidebarProps {
   onEditSize?: (productId: string, newSizeIndex: number) => void;
   showSizeOptions: boolean;
 }
-// 
+//
 export default function ProductSidebar({
   selectedProduct,
   selectedSizeIndex,
@@ -25,7 +26,7 @@ export default function ProductSidebar({
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+  const { addToCart, refreshCart } = useCart();
   // Load products on mount
   useEffect(() => {
     setIsLoading(true);
@@ -77,13 +78,15 @@ export default function ProductSidebar({
       {/* Product Grid */}
       <div className="grid grid-cols-2 gap-3">
         {products.map((p) => (
+          // inside your products.map((p) => …)
           <div
             key={p._id}
-            className={`relative bg-white rounded-lg border p-2 cursor-pointer transition-shadow ${
-              selectedProduct?._id === p._id
-                ? "border-blue-500 shadow-lg ring-2 ring-blue-200"
-                : "border-gray-200 hover:shadow-md"
-            }`}
+            className={`relative group bg-white rounded-lg border p-2 cursor-pointer transition-shadow
+    ${
+      selectedProduct?._id === p._id
+        ? "border-blue-500 shadow-lg ring-2 ring-blue-200"
+        : "border-gray-200 hover:shadow-md"
+    }`}
             onClick={() => handleProductClick(p)}
           >
             <div className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
@@ -99,6 +102,34 @@ export default function ProductSidebar({
             <div className="mt-1 text-sm font-semibold text-gray-600">
               ${p.price.toFixed(2)}
             </div>
+
+            {/* ADD TO WALL BUTTON OVERLAY */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation(); // prevent the card’s own onClick
+                onSelect(p, p.sizes[0], 0); // select default size
+                addToCart(p._id, 1, 0); // immediately add to cart
+                refreshCart(); // keep UI in sync
+              }}
+              className="absolute h-[56px] top-[136px] inset-0 flex items-center justify-center
+               bg-gray-400 bg-opacity-50 text-white font-semibold
+               opacity-0 group-hover:opacity-100 transition-opacity
+               rounded-b-lg"
+            >
+              <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 mr-2"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Add to Wall
+            </button>
           </div>
         ))}
       </div>

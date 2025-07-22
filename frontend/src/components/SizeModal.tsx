@@ -24,10 +24,10 @@ export default function SizeModal({
       <div className="w-[360px] bg-[#D7D7D7] shadow-lg h-full animate-slide-in-left">
         <div className="flex mt-[56px]  px-6 bg-gray-50 items-center justify-between ">
           <div className="">
-            <h2 className="text-gray-600 text-lg font-semibold">
+            <h2 className="text-gray-600 text-[18px] font-mono font-semibold">
               {product?.title}
             </h2>
-            <h2 className="text-gray-600 text-lg font-semibold">
+            <h2 className="text-gray-400 text-[14px] font-serif font-semibold">
               {product?.description}
             </h2>
           </div>
