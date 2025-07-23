@@ -284,7 +284,7 @@ export default function CartFooter() {
 
                   <button
                     onClick={onCheckout}
-                    disabled={loading || checkoutLoading || itemCount === 0}
+                    disabled={ checkoutLoading || itemCount === 0}
                     className={`w-full py-3 px-4 rounded-xl font-bold text-white transition-all duration-300 flex items-center justify-center ${
                       itemCount === 0
                         ? "bg-gray-300 cursor-not-allowed"

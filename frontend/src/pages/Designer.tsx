@@ -51,6 +51,7 @@ export default function Designer() {
     return () => window.removeEventListener("resize", updateDims);
   }, []);
 
+  
   useEffect(() => {
     if (!cart) return;
 

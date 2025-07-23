@@ -80,13 +80,13 @@ export default function ArtImage({
       {/* Optional background frame for non-wall images */}
       {!isWall && image && (
         <Rect
-          x={-10}
-          y={-10}
-          width={displayWidth + 20}
-          height={displayHeight + 20}
+          x={-7.5}
+          y={-7.5}
+          width={displayWidth + 15}
+          height={displayHeight + 15}
           fill="#fff"
           stroke="#8B4513"
-          strokeWidth={7}
+          strokeWidth={4}
           cornerRadius={6}
           shadowColor="rgba(0,0,0,0.25)"
           shadowBlur={10}

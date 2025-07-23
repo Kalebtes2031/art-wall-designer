@@ -1,18 +1,21 @@
 // src/context/CartContext.tsx
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { useCartApi } from '../hooks/useCartApi';
-import type { Cart } from '../types/Cart';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { useCartApi } from "../hooks/useCartApi";
+import type { Cart } from "../types/Cart";
 
 interface CartContextType {
   cart: Cart | null;
   loading: boolean;
-  addToCart: (productId: string, sizeIndex: number) => Promise<Cart | undefined>; // 🔥 fix here
+  addToCart: (
+    productId: string,
+    sizeIndex: number
+  ) => Promise<Cart | undefined>; // 🔥 fix here
   removeFromCart: (itemId: string) => Promise<void>;
   decrementCartItem: (itemId: string) => Promise<void>;
   refreshCart: () => Promise<void>;
   changeItemSize: (itemId: string, newSizeIndex: number) => Promise<void>;
+  updateCartItemQuantity: (itemId: string, newQuantity: number) => Promise<void>;
 }
-
 
 const CartContext = createContext<CartContextType>({
   cart: null,
@@ -24,11 +27,14 @@ const CartContext = createContext<CartContextType>({
   decrementCartItem: async () => {},
   refreshCart: async () => {},
   changeItemSize: async () => {},
+  updateCartItemQuantity: async () => {},
 });
 
-
-export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { fetchCart, setItem, removeItem, decrementItem, changeItemSize } = useCartApi();
+export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const { fetchCart, setItem, removeItem, decrementItem, changeItemSize, changeItemQuantity} =
+    useCartApi();
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -38,7 +44,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await fetchCart();
       setCart(data);
     } catch (err) {
-      console.error('Cart load error:', err);
+      console.error("Cart load error:", err);
     } finally {
       setLoading(false);
     }
@@ -55,9 +61,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const updated = await setItem(productId, sizeIndex);
       setCart(updated);
-      return updated;               // ← now returns the cart!
+      return updated; // ← now returns the cart!
     } catch (err) {
-      console.error('Add to cart failed:', err);
+      console.error("Add to cart failed:", err);
       return undefined;
     }
   };
@@ -67,7 +73,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updated = await removeItem(itemId);
       setCart(updated);
     } catch (err) {
-      console.error('Remove from cart failed:', err);
+      console.error("Remove from cart failed:", err);
     }
   };
 
@@ -76,16 +82,24 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updated = await decrementItem(itemId);
       setCart(updated);
     } catch (err) {
-      console.error('Decrement cart item failed:', err);
+      console.error("Decrement cart item failed:", err);
     }
   };
 
-  const changeItemSizeInCart = async (itemId: string, newSizeIndex: number) => {
+  const updateCartItemQuantity = async (
+    itemId: string,
+    newQuantity: number
+  ) => {
+    await changeItemQuantity(itemId, newQuantity);
+    await load();
+  };
+
+  const changeItemSizeInCart = async (itemId: string, newQuantity: number) => {
     try {
-      const updated = await changeItemSize(itemId, newSizeIndex);
+      const updated = await changeItemSize(itemId, newQuantity);
       setCart(updated);
     } catch (err) {
-      console.error('Change item size failed:', err);
+      console.error("Change item size failed:", err);
     }
   };
 
@@ -99,6 +113,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         decrementCartItem,
         refreshCart: load,
         changeItemSize: changeItemSizeInCart,
+        updateCartItemQuantity
       }}
     >
       {children}

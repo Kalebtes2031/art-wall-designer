@@ -72,6 +72,7 @@ export default function OrdersPage() {
       setUpdatingId(null);
     }
   };
+  console.log('roders:', orders)
 
   if (loading) {
     return (
@@ -131,10 +132,17 @@ export default function OrdersPage() {
                   <h4 className="font-medium text-gray-900 mb-2">Artworks</h4>
                   <ul className="space-y-2">
                     {order.items.map((item: any, idx: number) => (
-                      <li key={idx} className="flex justify-between text-sm">
-                        <span className="text-gray-600">
+                      <li key={idx} className="flex justify-between items-center rounded text-sm bg-gray-200 p-2">
+                        <div>
+
+                        <h3 className="text-gray-600 font-bold font-mono">
                           {item.product.title} × {item.quantity}
-                        </span>
+                        </h3>
+                        <h3 className="text-gray-600 font-serif">
+                        Size:  {item.product.sizes[item.sizeIndex].widthCm} × {item.product.sizes[item.sizeIndex].heightCm}
+                        </h3>
+
+                        </div>
                         <span className="text-gray-900 font-medium">
                           ${(item.priceAtOrder  * item.quantity).toFixed(2)}
                         </span>
