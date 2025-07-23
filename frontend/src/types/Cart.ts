@@ -9,10 +9,12 @@ import type { Product } from './Product';
  * - sizeIndex: which size preset was chosen (index into product.sizes)
  */
 export interface CartItem {
+  _id: string;        // ← new
   product: Product;
   quantity: number;
   sizeIndex: number;
 }
+
 
 /**
  * The shopping cart model.

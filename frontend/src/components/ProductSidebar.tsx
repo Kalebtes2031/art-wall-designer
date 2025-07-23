@@ -1,4 +1,3 @@
-// components/ProductSidebar.tsx
 import { useEffect, useState } from "react";
 import api from "../utils/api";
 import type { Product, Size } from "../types/Product";
@@ -12,8 +11,10 @@ interface ProductSidebarProps {
   editingSizeIndex?: number;
   onEditSize?: (productId: string, newSizeIndex: number) => void;
   showSizeOptions: boolean;
+  onAddToWall: () => void; // ← add this line
 }
-//
+
+
 export default function ProductSidebar({
   selectedProduct,
   selectedSizeIndex,
@@ -22,12 +23,12 @@ export default function ProductSidebar({
   editingSizeIndex,
   onEditSize,
   showSizeOptions,
+  onAddToWall,
 }: ProductSidebarProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { addToCart, refreshCart } = useCart();
-  // Load products on mount
+
   useEffect(() => {
     setIsLoading(true);
     api
@@ -40,16 +41,15 @@ export default function ProductSidebar({
       .finally(() => setIsLoading(false));
   }, []);
 
-  // Handlers
   const handleProductClick = (p: Product) => {
     onSelect(p, p.sizes[0], 0);
   };
+
   const handleSizeClick = (size: Size, idx: number) => {
     if (!selectedProduct) return;
     onSelect(selectedProduct, size, idx);
   };
 
-  // Render states
   if (error) {
     return (
       <div className="p-4 bg-red-50 text-red-700 rounded-lg border border-red-200 text-center">
@@ -57,6 +57,7 @@ export default function ProductSidebar({
       </div>
     );
   }
+
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -65,6 +66,7 @@ export default function ProductSidebar({
       </div>
     );
   }
+
   if (products.length === 0) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-gray-500">
@@ -75,18 +77,16 @@ export default function ProductSidebar({
 
   return (
     <div className="flex-1 flex flex-col px-2">
-      {/* Product Grid */}
       <div className="grid grid-cols-2 gap-3">
         {products.map((p) => (
-          // inside your products.map((p) => …)
           <div
             key={p._id}
-            className={`relative group bg-white rounded-lg border p-2 cursor-pointer transition-shadow
-    ${
-      selectedProduct?._id === p._id
-        ? "border-blue-500 shadow-lg ring-2 ring-blue-200"
-        : "border-gray-200 hover:shadow-md"
-    }`}
+            className={`relative group bg-white rounded-lg border p-2 cursor-pointer transition-shadow flex flex-col 
+              ${
+                selectedProduct?._id === p._id
+                  ? "border-blue-500 shadow-lg ring-2 ring-blue-200"
+                  : "border-gray-200 hover:shadow-md"
+              }`}
             onClick={() => handleProductClick(p)}
           >
             <div className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
@@ -105,74 +105,35 @@ export default function ProductSidebar({
 
             {/* ADD TO WALL BUTTON OVERLAY */}
             <button
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation(); // prevent the card’s own onClick
                 onSelect(p, p.sizes[0], 0); // select default size
-                addToCart(p._id, 1, 0); // immediately add to cart
-                refreshCart(); // keep UI in sync
+                // await addToCart(p._id, 0);  // <-- ✅ fixed argument count
+                // refreshCart();              // optional, if Designer doesn't already do this
+                onAddToWall(); // call the new prop to handle adding to wall
               }}
-              className="absolute h-[56px] top-[136px] inset-0 flex items-center justify-center
-               bg-gray-400 bg-opacity-50 text-white font-semibold
-               opacity-0 group-hover:opacity-100 transition-opacity
-               rounded-b-lg"
-            >
+              className="absolute bottom-0 left-0 right-0 h-[56px] flex items-center justify-center
+       bg-gray-400 bg-opacity-50 text-white font-semibold
+       opacity-0 group-hover:opacity-100 transition-opacity
+       rounded-b-lg"
+  >
               <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-2"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Add to Wall
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-2"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Add to Wall
             </button>
           </div>
         ))}
       </div>
-
-      {/* Size Picker */}
-      {/* {selectedProduct && showSizeOptions && (
-       <>
-       <div ></div>
-        <div className="mt-4 p-3 bg-white rounded-lg border border-gray-200">
-          <h3 className="mb-2 text-sm font-semibold text-gray-700">
-            Choose a size
-          </h3>
-          <div className="flex flex-col space-y-2">
-            {showSizeOptions && selectedProduct?.sizes.map((s, idx) => {
-              const isEditing = selectedProduct._id === editingProductId;
-              const isSelected = isEditing
-                ? idx === editingSizeIndex
-                : idx === selectedSizeIndex;
-
-              return (
-                <button
-                  key={idx}
-                  onClick={() => {
-                    if (isEditing) {
-                      onEditSize?.(selectedProduct._id, idx);
-                    } else {
-                      handleSizeClick(s, idx);
-                    }
-                  }}
-                  className={`w-full text-left px-4 py-2 rounded text-sm transition-colors ${
-                    isSelected
-                    ? "bg-blue-500 text-white"
-                      : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                  }`}
-                >
-                  {s.widthCm} × {s.heightCm} cm
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </>
-      )} */}
     </div>
   );
 }

@@ -17,13 +17,14 @@ router.get("/", requireAuth("customer"), async (req: any, res) => {
   res.json(cart);
 });
 
-// Add or update item
+// Add a new cart item (each call adds one unique instance)
 router.post("/items", requireAuth("customer"), async (req: any, res) => {
   const userId = req.user.id;
-  const { productId, quantity, sizeIndex } = req.body;
-  if (!Types.ObjectId.isValid(productId) || quantity < 1) {
-    return res.status(400).json({ error: "Invalid payload" });
+  const { productId, sizeIndex } = req.body;
+  if (!Types.ObjectId.isValid(productId)) {
+    return res.status(400).json({ error: "Invalid product ID" });
   }
+
   const product = await Product.findById(productId);
   if (!product) return res.status(404).json({ error: "Product not found" });
 
@@ -35,86 +36,89 @@ router.post("/items", requireAuth("customer"), async (req: any, res) => {
     return res.status(400).json({ error: "Invalid sizeIndex for product" });
   }
 
+  // Ensure cart exists
   const cart = await Cart.findOneAndUpdate(
     { user: userId },
     {},
     { upsert: true, new: true }
   );
 
-  const idx = cart.items.findIndex(
-    (i) => i.product.equals(productId) && i.sizeIndex === sizeIndex
-  );
-  if (idx >= 0) {
-    cart.items[idx].quantity = quantity;
-  } else {
-    cart.items.push({ product: productId, quantity, sizeIndex });
-  }
+  // Always push a new, individual item
+  cart.items.push({
+    product: new Types.ObjectId(productId),
+    quantity: 1,
+    sizeIndex,
+  });
+
   await cart.save();
   await cart.populate("items.product");
   res.json(cart);
 });
 
-// PATCH instead of DELETE for quantity decrement
-router.patch(
-  "/items/:productId/decrement",
-  requireAuth("customer"),
-  async (req, res) => {
-    const userId = req.user.id;
-    const { productId } = req.params;
-    const sizeIndex = Number(req.query.sizeIndex);
+// backend/src/routes/cart.ts
 
-    if (!Types.ObjectId.isValid(productId) || isNaN(sizeIndex)) {
-      return res.status(400).json({ error: "Invalid parameters" });
-    }
+// Update the sizeIndex of a specific cart item
+// Update sizeIndex of a specific cart item
+router.patch("/items/:itemId/size", requireAuth("customer"), async (req: any, res) => {
+  const userId = req.user.id;
+  const { itemId } = req.params;
+  const { newSizeIndex } = req.body;
 
-    const cart = await Cart.findOne({ user: userId });
-    if (!cart) return res.status(404).json({ error: "Cart not found" });
-
-    const itemIndex = cart.items.findIndex(
-      (i) => i.product.equals(productId) && i.sizeIndex === sizeIndex
-    );
-
-    if (itemIndex === -1) {
-      return res.status(404).json({ error: "Item not found in cart" });
-    }
-
-    if (cart.items[itemIndex].quantity > 1) {
-      cart.items[itemIndex].quantity -= 1;
-    } else {
-      // remove the item if quantity becomes 0
-      cart.items.splice(itemIndex, 1);
-    }
-
-    await cart.save();
-    await cart.populate("items.product");
-    res.json(cart);
+  if (!Types.ObjectId.isValid(itemId)) {
+    return res.status(400).json({ error: "Invalid item ID" });
   }
-);
+
+  const cart = await Cart.findOne({ user: userId });
+  if (!cart) return res.status(404).json({ error: "Cart not found" });
+
+  const item = cart.items.find(i => i._id?.toString() === itemId);
+  if (!item) return res.status(404).json({ error: "Item not found in cart" });
+
+  const product = await Product.findById(item.product);
+  if (!product) return res.status(404).json({ error: "Product not found" });
+
+  if (
+    !Array.isArray(product.sizes) ||
+    newSizeIndex < 0 ||
+    newSizeIndex >= product.sizes.length
+  ) {
+    return res.status(400).json({ error: "Invalid size index" });
+  }
+
+  item.sizeIndex = newSizeIndex;
+
+  await cart.save();
+  await cart.populate("items.product");
+
+  res.json(cart);
+});
 
 
-// Remove item
+
+
+// Remove a specific cart item by its unique item ID
+
 router.delete(
-  "/items/:productId",
+  "/items/:itemId",
   requireAuth("customer"),
   async (req, res) => {
     const userId = req.user.id;
-    const { productId } = req.params;
-    const sizeIndex = Number(req.query.sizeIndex); // from query string
-
-    if (!Types.ObjectId.isValid(productId) || isNaN(sizeIndex)) {
-      return res.status(400).json({ error: "Invalid parameters" });
+    const { itemId } = req.params;
+    if (!Types.ObjectId.isValid(itemId)) {
+      return res.status(400).json({ error: "Invalid item ID" });
     }
 
     const cart = await Cart.findOne({ user: userId });
     if (!cart) return res.status(404).json({ error: "Cart not found" });
 
-    cart.items = cart.items.filter(
-      (i) => !i.product.equals(productId) || i.sizeIndex !== sizeIndex
-    );
+    // Now i._id is declared, so this filters correctly:
+    cart.items = cart.items.filter(i => i._id && i._id.toString() !== itemId);
+
     await cart.save();
     await cart.populate("items.product");
     res.json(cart);
   }
 );
+
 
 export default router;
