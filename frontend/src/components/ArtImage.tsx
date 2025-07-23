@@ -54,17 +54,26 @@ export default function ArtImage({
 
   return (
     <Group
+      name={isWall ? "wall" : ""}
       x={x}
       y={y}
       ref={groupRef}
       draggable={!isWall}
-      onDragEnd={e => {
+      onDragEnd={(e) => {
         if (id && onMove) onMove(id, e.target.x(), e.target.y());
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onClick={() => onSelect?.()}
-      onTap={() => onSelect?.()}
+      onClick={(e) => {
+        e.cancelBubble = true;
+        onSelect?.();
+        if (!isWall) onEditSize?.(); // ✅ Only open modal for artworks, not wall
+      }}
+      onTap={(e) => {
+        e.cancelBubble = true;
+        onSelect?.();
+        if (!isWall) onEditSize?.();
+      }}
       scaleX={scaleX}
       scaleY={scaleY}
     >
@@ -88,6 +97,7 @@ export default function ArtImage({
 
       {/* Artwork image */}
       <KonvaImage
+      name={isWall ? "wall" : undefined}
         image={image}
         x={0}
         y={0}
@@ -109,16 +119,22 @@ export default function ArtImage({
             text="🗑️"
             fontSize={20}
             x={displayWidth + 12}
-            y={8+24}
-            onClick={e => {
+            y={8 + 24}
+            onClick={(e) => {
               e.cancelBubble = true;
               onDelete?.();
             }}
-            onMouseEnter={e => {
-              e.target.getStage()?.container().style.setProperty("cursor", "pointer");
+            onMouseEnter={(e) => {
+              e.target
+                .getStage()
+                ?.container()
+                .style.setProperty("cursor", "pointer");
             }}
-            onMouseLeave={e => {
-              e.target.getStage()?.container().style.setProperty("cursor", "default");
+            onMouseLeave={(e) => {
+              e.target
+                .getStage()
+                ?.container()
+                .style.setProperty("cursor", "default");
             }}
           />
           {/* Edit-size icon */}
@@ -127,15 +143,21 @@ export default function ArtImage({
             fontSize={20}
             x={displayWidth + 14}
             y={4}
-            onClick={e => {
+            onClick={(e) => {
               e.cancelBubble = true;
               onEditSize?.();
             }}
-            onMouseEnter={e => {
-              e.target.getStage()?.container().style.setProperty("cursor", "pointer");
+            onMouseEnter={(e) => {
+              e.target
+                .getStage()
+                ?.container()
+                .style.setProperty("cursor", "pointer");
             }}
-            onMouseLeave={e => {
-              e.target.getStage()?.container().style.setProperty("cursor", "default");
+            onMouseLeave={(e) => {
+              e.target
+                .getStage()
+                ?.container()
+                .style.setProperty("cursor", "default");
             }}
           />
         </>

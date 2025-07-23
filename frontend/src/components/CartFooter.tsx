@@ -1,41 +1,80 @@
 // src/components/CartFooter.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useCart } from '../context/CartContext';
+import { useCart } from "../context/CartContext";
 import { useOrderApi } from "../hooks/useOrderApi";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { FiShoppingCart, FiX, FiPlus, FiMinus, FiTrash2, FiArrowRight, FiExternalLink } from "react-icons/fi";
+import {
+  FiShoppingCart,
+  FiX,
+  FiPlus,
+  FiMinus,
+  FiTrash2,
+  FiArrowRight,
+  FiExternalLink,
+} from "react-icons/fi";
 
 export default function CartFooter() {
-  const { cart, loading, updateItem, removeFromCart, refreshCart } = useCart();
+  const {
+    cart,
+    loading,
+    addToCart,
+    removeFromCart,
+    decrementCartItem,
+    refreshCart,
+  } = useCart();
   const { createOrder } = useOrderApi();
   const [open, setOpen] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const navigate = useNavigate();
 
-  const total = cart?.items?.reduce((sum: number, i) => sum + i.quantity * i.product.price, 0) ?? 0;
-  const itemCount = cart?.items?.reduce((count: number, i) => count + i.quantity, 0) ?? 0;
+  useEffect(() => {
+    if (!cart) return;
+    const fetchCart = async () => {
+      await refreshCart();
+    };
+    fetchCart();
+  }, [cart]);
 
-  const changeQty = async (prodId: string, qty: number, sizeIndex?: number) => {
-    if (qty < 1) return;
+  const total =
+    cart?.items?.reduce(
+      (sum: number, i) => sum + i.quantity * i.product.price,
+      0
+    ) ?? 0;
+  const itemCount =
+    cart?.items?.reduce((count: number, i) => count + i.quantity, 0) ?? 0;
+
+  const changeQty = async (
+    itemId: string,
+    currentQty: number,
+    direction: "inc" | "dec"
+  ) => {
     try {
-      await updateItem(prodId, qty, sizeIndex);
+      if (direction === "inc") {
+        // Increment quantity by adding the same item with the same sizeIndex
+        // Assuming sizeIndex is available in item or defaulting to 0
+        await addToCart(itemId, 0);
+      } else if (direction === "dec" && currentQty > 1) {
+        await decrementCartItem(itemId);
+      }
       toast.success("Quantity updated");
+      await refreshCart(); // refresh cart UI after quantity change
     } catch {
       toast.error("Failed to update quantity");
     }
   };
 
-   const goToCartPage = () => {
+  const goToCartPage = () => {
     setOpen(false);
     navigate("/cart");
   };
 
-  const onRemove = async (prodId: string, sizeIndex: number) => {
+  const onRemove = async (itemId: string) => {
     try {
-      await removeFromCart(prodId, sizeIndex);
+      await removeFromCart(itemId);
       toast.success("Item removed from cart");
+      await refreshCart();
     } catch {
       toast.error("Failed to remove item");
     }
@@ -61,21 +100,28 @@ export default function CartFooter() {
       {/* Floating cart button */}
       <motion.button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-10 z-50 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-full shadow-xl p-4 flex items-center justify-center group"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        className="fixed cursor-pointer bottom-0 left-0 right-0  z-50 h-16 bg-[#D7D7D7] flex items-center justify-between px-12 shadow-xl"
+        // whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.98 }}
       >
-        <FiShoppingCart className="h-6 w-6" />
-        {itemCount > 0 && (
-          <motion.span 
-            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-          >
-            {itemCount}
-          </motion.span>
-        )}
-        <span className="sr-only">View Cart</span>
+        {/* Total Price on Left */}
+        <div className="text-lg font-semibold">Total: ${total.toFixed(2)}</div>
+
+        {/* Cart Icon with Badge on Right */}
+        <div className="relative">
+          <FiShoppingCart className="h-6 w-6" />
+          {itemCount > 0 && (
+            <motion.span
+              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+            >
+              {itemCount}
+            </motion.span>
+          )}
+        </div>
+
+        <span className="sr-only">Open cart</span>
       </motion.button>
 
       {/* Cart panel with backdrop */}
@@ -90,7 +136,7 @@ export default function CartFooter() {
               className="fixed inset-0 bg-black z-30"
               onClick={() => setOpen(false)}
             />
-            
+
             {/* Slide-up panel */}
             <motion.div
               initial={{ y: "100%" }}
@@ -103,7 +149,7 @@ export default function CartFooter() {
               <div className="flex justify-center py-2">
                 <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
               </div>
-              
+
               {/* Header */}
               <div className="flex justify-between items-center px-6 pb-4 border-b">
                 <h2 className="text-2xl font-bold text-gray-900 flex items-center">
@@ -122,15 +168,16 @@ export default function CartFooter() {
                   <FiX className="h-5 w-5 text-gray-500" />
                 </button>
               </div>
-              
-              <div className="flex w-full">
 
+              <div className="flex w-full">
                 {/* Cart items */}
                 <div className="flex-1 max-h-[45vh] w-[65%] overflow-y-auto px-4 py-2">
                   {cart?.items?.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 text-center">
                       <FiShoppingCart className="h-16 w-16 text-gray-300 mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-1">Your cart is empty</h3>
+                      <h3 className="text-lg font-medium text-gray-900 mb-1">
+                        Your cart is empty
+                      </h3>
                       <p className="text-gray-500 max-w-xs">
                         Add some beautiful artwork to your cart to get started
                       </p>
@@ -139,7 +186,7 @@ export default function CartFooter() {
                     <div className="space-y-4 py-2">
                       {cart?.items?.map((item: any) => (
                         <motion.div
-                          key={item.product._id}
+                          key={item._id}
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.9 }}
@@ -147,9 +194,9 @@ export default function CartFooter() {
                         >
                           <div className="flex-shrink-0 w-20 h-20 bg-gray-200 rounded-lg overflow-hidden">
                             {item.product.imageUrl ? (
-                              <img 
-                                src={item.product.imageUrl} 
-                                alt={item.product.title} 
+                              <img
+                                src={item.product.imageUrl}
+                                alt={item.product.title}
                                 className="w-full h-full object-cover"
                               />
                             ) : (
@@ -158,9 +205,22 @@ export default function CartFooter() {
                               </div>
                             )}
                           </div>
-                          
+
                           <div className="ml-4 flex-1 min-w-0">
-                            <h3 className="font-medium text-gray-900 truncate">{item.product.title}</h3>
+                            <h3 className="font-medium text-gray-900 truncate">
+                              {item.product.title}
+                            </h3>
+
+                            {/* 👇 Add this block */}
+                            {item.product.sizes && (
+                              <p className="text-sm text-gray-600">
+                                Size:{" "}
+                                {item.product.sizes[item.sizeIndex]?.widthCm}cm
+                                × {item.product.sizes[item.sizeIndex]?.heightCm}
+                                cm
+                              </p>
+                            )}
+
                             <p className="text-lg font-semibold text-indigo-600">
                               ${(item.product.price * item.quantity).toFixed(2)}
                             </p>
@@ -168,31 +228,39 @@ export default function CartFooter() {
                               ${item.product.price.toFixed(2)} × {item.quantity}
                             </p>
                           </div>
-                          
+
                           <div className="flex items-center space-x-2 ml-2">
                             <div className="flex items-center border border-gray-300 rounded-lg">
                               <button
-                                onClick={() => changeQty(item.product._id, item.quantity - 1, item.sizeIndex)}
+                                onClick={() =>
+                                  changeQty(item._id, item.quantity, "dec")
+                                }
                                 disabled={item.quantity <= 1}
-                                className={`p-2 ${item.quantity <= 1 ? 'text-gray-300' : 'text-gray-600 hover:bg-gray-100'}`}
+                                className={`p-2 ${
+                                  item.quantity <= 1
+                                    ? "text-gray-300"
+                                    : "text-gray-600 hover:bg-gray-100"
+                                }`}
                               >
                                 <FiMinus className="h-4 w-4" />
                               </button>
-                              
+
                               <span className="px-2 text-sm font-medium min-w-[24px] text-center">
                                 {item.quantity}
                               </span>
-                              
+
                               <button
-                                onClick={() => changeQty(item.product._id, item.quantity + 1, item.sizeIndex)}
+                                onClick={() =>
+                                  changeQty(item._id, item.quantity, "inc")
+                                }
                                 className="p-2 text-gray-600 hover:bg-gray-100"
                               >
                                 <FiPlus className="h-4 w-4" />
                               </button>
                             </div>
-                            
+
                             <button
-                              onClick={() => onRemove(item.product._id, item.sizeIndex)}
+                              onClick={() => onRemove(item._id)}
                               className="p-2 text-red-500 hover:bg-red-50 rounded-full"
                               title="Remove item"
                             >
@@ -208,24 +276,42 @@ export default function CartFooter() {
                 {/* Footer */}
                 <div className="border-t w-[35%] bg-gray-50 p-16 max-h-[45vh] overflow-y-auto flex flex-col gap-y-5">
                   <div className="flex justify-center gap-x-2 items-center ">
-                    <span className="text-gray-600 font-bold">Total: {" "}</span>
-                    <span className="text-lg font-semibold text-gray-900">${total.toFixed(2)}</span>
+                    <span className="text-gray-600 font-bold">Total: </span>
+                    <span className="text-lg font-semibold text-gray-900">
+                      ${total.toFixed(2)}
+                    </span>
                   </div>
-                  
+
                   <button
                     onClick={onCheckout}
                     disabled={loading || checkoutLoading || itemCount === 0}
                     className={`w-full py-3 px-4 rounded-xl font-bold text-white transition-all duration-300 flex items-center justify-center ${
-                      itemCount === 0 
-                        ? 'bg-gray-300 cursor-not-allowed' 
-                        : 'bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 shadow-lg'
+                      itemCount === 0
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 shadow-lg"
                     }`}
                   >
                     {checkoutLoading ? (
                       <span className="flex items-center">
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        <svg
+                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
                         </svg>
                         Processing...
                       </span>
@@ -236,19 +322,19 @@ export default function CartFooter() {
                       </span>
                     )}
                   </button>
-                  
-                   <button
-                        onClick={goToCartPage}
-                        disabled={itemCount === 0}
-                        className={`w-full py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center text-sm ${
-                          itemCount === 0 
-                            ? 'text-gray-400 cursor-not-allowed' 
-                            : 'text-indigo-600 border border-indigo-600 hover:bg-indigo-50'
-                        }`}
-                      >
-                        <FiExternalLink className="mr-2" />
-                        View Full Cart
-                      </button>
+
+                  <button
+                    onClick={goToCartPage}
+                    disabled={itemCount === 0}
+                    className={`w-full py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center text-sm ${
+                      itemCount === 0
+                        ? "text-gray-400 cursor-not-allowed"
+                        : "text-indigo-600 border border-indigo-600 hover:bg-indigo-50"
+                    }`}
+                  >
+                    <FiExternalLink className="mr-2" />
+                    View Full Cart
+                  </button>
                 </div>
               </div>
             </motion.div>

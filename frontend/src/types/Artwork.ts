@@ -11,6 +11,7 @@
  */
 export interface Artwork {
   id: string;
+  itemId: string; // CartItem._id
   src: string;
   x: number;
   y: number;

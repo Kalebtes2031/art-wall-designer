@@ -1,9 +1,8 @@
-// components/CanvasArea.tsx
 import React, { useEffect, useState } from "react";
 import { Stage, Layer } from "react-konva";
 import useImage from "use-image";
 import ArtImage from "./ArtImage";
-import type { Artwork } from "../types/Artwork";
+import type { Artwork } from "../types/Artwork"; // Make sure this includes `itemId`
 
 interface CanvasAreaProps {
   wallUrl: string;
@@ -14,6 +13,7 @@ interface CanvasAreaProps {
   onEditSize?: (placedId: string) => void;
   onSelectArtwork?: (artworkId: string | null) => void;
   onMove?: (id: string, x: number, y: number) => void;
+  onDeselectAll?: () => void;
 }
 
 export default function CanvasArea({
@@ -25,19 +25,21 @@ export default function CanvasArea({
   onEditSize,
   onSelectArtwork,
   onMove,
+  onDeselectAll,
 }: CanvasAreaProps) {
   const [wallImage] = useImage(wallUrl);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const leftMargin = 100;
-  // Fit wall image into canvas with correct scaling and centering
+
   useEffect(() => {
     if (!wallImage) return;
     const imgRatio = wallImage.width / wallImage.height;
     const containerRatio = width / height;
     let newScale = 1;
     const newOffset = { x: 0, y: 0 };
+
     if (imgRatio > containerRatio) {
       newScale = width / wallImage.width;
       newOffset.y = (height - wallImage.height * newScale) / 2;
@@ -45,6 +47,7 @@ export default function CanvasArea({
       newScale = height / wallImage.height;
       newOffset.x = (width - wallImage.width * newScale) / 2 + leftMargin;
     }
+
     setScale(newScale);
     setOffset(newOffset);
   }, [wallImage, width, height]);
@@ -56,15 +59,19 @@ export default function CanvasArea({
         height={height}
         className="shadow-2xl rounded-xl overflow-hidden border-8 border-white bg-white"
         onMouseDown={(e) => {
-          // Deselect any selected artwork if clicking outside
-          if (e.target === e.target.getStage()) {
+          console.log("Clicked on:", e.target.name());
+          const stage = e.target.getStage();
+          const clickedOnEmpty =
+            e.target === stage || e.target.hasName?.("wall");
+
+          if (clickedOnEmpty) {
             setSelectedId(null);
             onSelectArtwork?.(null);
+            onDeselectAll?.(); // ✅ Close the modal
           }
         }}
       >
         <Layer>
-          {/* Background wall image */}
           {wallImage && (
             <ArtImage
               src={wallUrl}
@@ -76,8 +83,6 @@ export default function CanvasArea({
               onSelect={() => setSelectedId(null)}
             />
           )}
-
-          {/* User-placed artworks */}
           {artworks.map((a) => (
             <ArtImage
               key={a.id}
@@ -90,12 +95,12 @@ export default function CanvasArea({
               isWall={false}
               isSelected={selectedId === a.id}
               onSelect={() => {
-                setSelectedId(a.id)
+                setSelectedId(a.id);
                 onSelectArtwork?.(a.id);
               }}
               onDelete={() => onDelete?.(a.id)}
               onEditSize={() => onEditSize?.(a.id)}
-              onMove={onMove}        
+              onMove={onMove}
             />
           ))}
         </Layer>

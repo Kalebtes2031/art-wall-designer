@@ -1,7 +1,8 @@
 // backend/src/models/Cart.ts
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Types } from 'mongoose';
 
 interface CartItem {
+   _id?: Types.ObjectId; 
   product: mongoose.Types.ObjectId;
   quantity: number;
   sizeIndex: number;
@@ -17,7 +18,7 @@ const CartItemSchema = new Schema<CartItem>({
   product:  { type: Schema.Types.ObjectId, ref: 'Product', required: true },
   quantity: { type: Number, required: true, min: 1, default: 1 },
   sizeIndex: { type: Number, required: true }
-}, { _id: false });
+});
 
 const CartSchema = new Schema<CartDocument>({
   user:  { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
