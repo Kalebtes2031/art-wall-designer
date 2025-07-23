@@ -93,6 +93,51 @@ router.patch("/items/:itemId/size", requireAuth("customer"), async (req: any, re
   res.json(cart);
 });
 
+// single PATCH handler for both quantity and size
+// router.patch(
+//   "/items/:itemId",
+//   requireAuth("customer"),
+//   async (req, res) => {
+//     const { itemId } = req.params;
+//     const { quantity, sizeIndex } = req.body;
+//     // validate itemId etc...
+//     const cart = await Cart.findOne({ user: req.user.id });
+//     const item = cart!.items.id(itemId);
+//     if (quantity != null) item.quantity = quantity;
+//     if (sizeIndex != null)  item.sizeIndex = sizeIndex;
+//     await cart!.save();
+//     return res.json(cart);
+//   }
+// );
+
+// Patch quantity only
+router.patch(
+  "/items/:itemId/quantity",
+  requireAuth("customer"),
+  async (req, res) => {
+    const userId = req.user.id;
+    const { itemId } = req.params;
+    const { newQuantity } = req.body as { newQuantity: number };
+
+    if (!Types.ObjectId.isValid(itemId) || typeof newQuantity !== "number" || newQuantity < 1)
+      return res.status(400).json({ error: "Invalid parameters" });
+
+    const cart = await Cart.findOne({ user: userId });
+    if (!cart) return res.status(404).json({ error: "Cart not found" });
+
+      const item = cart.items.find(i => i._id?.toString() === itemId);
+    // const item = cart.items.id(itemId);
+    if (!item) return res.status(404).json({ error: "Item not in cart" });
+
+    item.quantity = newQuantity;
+  
+    await cart.save();
+  
+    await cart.populate("items.product");
+    // console.log("Updated cart:", cart);
+    res.json(cart);
+  }
+);
 
 
 
@@ -113,7 +158,7 @@ router.delete(
 
     // Now i._id is declared, so this filters correctly:
     cart.items = cart.items.filter(i => i._id && i._id.toString() !== itemId);
-
+    console.log('item removed:', cart)
     await cart.save();
     await cart.populate("items.product");
     res.json(cart);

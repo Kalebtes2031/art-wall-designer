@@ -22,6 +22,7 @@ router.post('/', requireAuth('customer'), async (req: any, res) => {
       product:      p._id,
       quantity:     i.quantity,
       priceAtOrder: p.price,
+      sizeIndex:    i.sizeIndex,
     };
   });
   const total = items.reduce((sum, i) => sum + i.quantity * i.priceAtOrder, 0);
@@ -53,7 +54,9 @@ router.get('/', requireAuth(), async (req: any, res) => {
   const { role, id } = req.user;
   let orders;
   if (role === 'admin') {
-    orders = await Order.find().populate('items.product');
+    orders = await Order.find()
+    .populate('items.product')
+    .lean<{ items: { product: any; quantity: number; priceAtOrder: number; sizeIndex: number }[] }>();
   } else if (role === 'seller') {
     const all = await Order.find().populate('items.product');
     orders = all.filter(o =>

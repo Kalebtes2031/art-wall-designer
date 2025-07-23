@@ -5,11 +5,12 @@ interface OrderItem {
   product: mongoose.Types.ObjectId;
   quantity: number;
   priceAtOrder: number;    // snapshot of the price when ordered
+  sizeIndex: number;
 }
 
 export interface OrderDocument extends Document {
   user: mongoose.Types.ObjectId;       // who ordered
-  items: OrderItem[];
+  items: (OrderItem & { _id?: mongoose.Types.ObjectId })[];
   total: number;                       // sum(quantity * priceAtOrder)
   status: 'pending' | 'paid' | 'shipped' | 'cancelled';
   createdAt: Date;
@@ -20,6 +21,7 @@ const OrderItemSchema = new Schema<OrderItem>({
   product:      { type: Schema.Types.ObjectId, ref: 'Product', required: true },
   quantity:     { type: Number, required: true, min: 1 },
   priceAtOrder: { type: Number, required: true, min: 0 },
+  sizeIndex:    { type: Number, required: true }, 
 }, { _id: false });
 
 const OrderSchema = new Schema<OrderDocument>({

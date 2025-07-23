@@ -12,7 +12,7 @@ export default function CartPage() {
   // const [cart, setCart] = useState<any>(null);
   const [isRemoving, setIsRemoving] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { cart, loading, updateItem, removeFromCart, refreshCart } = useCart();
+  const { cart, loading, updateCartItemQuantity, removeFromCart, refreshCart } = useCart();
 
   // useEffect(() => {
   //   const loadCart = async () => {
@@ -33,11 +33,12 @@ export default function CartPage() {
     0
   ) ?? 0;
 
-  const changeQty = async (id: string, qty: number, sizeIndex?: number) => {
+  const changeQty = async (id: string, qty: number) => {
+    console.log("this is me", id, qty);
   if (qty < 1) return;
   try {
     // this calls CartContext.updateItem → load() → context.cart changes
-    await updateItem(id, qty, sizeIndex);
+    await updateCartItemQuantity(id, qty);
     toast.success("Quantity updated");
     // no need to call refreshCart separately; updateItem already does it
   } catch {
@@ -45,11 +46,11 @@ export default function CartPage() {
   }
 };
 
-const onRemove = async (id: string, sizeIndex: number) => {
+const onRemove = async (id: string) => {
   try {
     setIsRemoving(id);
     // context.removeFromCart → load() → context.cart changes
-    await removeFromCart(id, sizeIndex);
+    await removeFromCart(id);
     toast.success("Item removed from cart");
   } catch {
     toast.error("Could not remove item");
@@ -149,6 +150,9 @@ const onRemove = async (id: string, sizeIndex: number) => {
                           <p className="text-gray-600 text-sm mt-1 line-clamp-2">
                             {item.product.description || "Beautiful art piece for your collection"}
                           </p>
+                          <p className="text-gray-600 text-sm mt-1 line-clamp-2">
+                            Size: {item.product.sizes[item.sizeIndex].widthCm} × {item.product.sizes[item.sizeIndex].heightCm} cm
+                          </p>
                         </div>
                         
                         <div className="text-right">
@@ -160,7 +164,8 @@ const onRemove = async (id: string, sizeIndex: number) => {
                       <div className="flex justify-between items-center mt-6">
                         <div className="flex items-center">
                           <button
-                            onClick={() => changeQty(item.product._id, item.quantity - 1, item.sizeIndex)}
+                            onClick={() => changeQty(item._id, item.quantity - 1)}
+                            // onClick={() => changeQty(item.product._id, item.quantity - 1, item.sizeIndex)}
                             disabled={item.quantity <= 1 || loading}
                             className={`w-10 h-10 flex items-center justify-center rounded-full ${
                               item.quantity <= 1 
@@ -174,7 +179,8 @@ const onRemove = async (id: string, sizeIndex: number) => {
                           <span className="mx-4 font-medium text-lg">{item.quantity}</span>
                           
                           <button
-                            onClick={() => changeQty(item.product._id, item.quantity + 1, item.sizeIndex)}
+                            onClick={() => changeQty(item._id, item.quantity + 1)}
+                            // onClick={() => changeQty(item.product._id, item.quantity + 1, item.sizeIndex)}
                             disabled={loading}
                             className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200"
                           >
@@ -183,12 +189,12 @@ const onRemove = async (id: string, sizeIndex: number) => {
                         </div>
                         
                         <button
-                          onClick={() => onRemove(item.product._id, item.sizeIndex)}
-                          disabled={isRemoving === item.product._id || loading}
+                          onClick={() => onRemove(item._id)}
+                          disabled={isRemoving === item._id || loading}
                           className="flex items-center text-red-500 hover:text-red-700 disabled:opacity-50"
                         >
                           <FiTrash2 className="mr-1" />
-                          {isRemoving === item.product._id ? 'Removing...' : 'Remove'}
+                          {isRemoving === item._id ? 'Removing...' : 'Remove'}
                         </button>
                       </div>
                     </div>
@@ -257,7 +263,7 @@ const onRemove = async (id: string, sizeIndex: number) => {
                 </div>
               </div>
               
-              <div className="mt-6 bg-white rounded-2xl shadow-lg p-6">
+              {/* <div className="mt-6 bg-white rounded-2xl shadow-lg p-6">
                 <h3 className="font-bold text-gray-900 mb-3">Need Assistance?</h3>
                 <p className="text-gray-600 text-sm mb-4">
                   Our art consultants are here to help you with your purchase or answer any questions.
@@ -270,7 +276,7 @@ const onRemove = async (id: string, sizeIndex: number) => {
                     <p className="text-gray-500 text-sm">Mon-Fri, 9am-5pm EST</p>
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         )}

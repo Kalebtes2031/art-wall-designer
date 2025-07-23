@@ -36,9 +36,21 @@ export function useCartApi() {
     },
     []
   );
+  // Change an item's quantity by its _id
+const changeItemQuantity = useCallback(
+  async (itemId: string, newQuantity: number) => {
+    const res = await api.patch<Cart>(
+      `/cart/items/${itemId}/quantity`,
+      { newQuantity }
+    );
+    return res.data;
+  },
+  []
+);
+
 
   // Decrement (remove) one unit is same as delete
   const decrementItem = removeItem;
 
-  return { fetchCart, setItem, removeItem, decrementItem, changeItemSize };
+  return { fetchCart, setItem, removeItem, decrementItem, changeItemSize, changeItemQuantity };
 }
