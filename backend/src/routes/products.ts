@@ -6,17 +6,79 @@ import { requireAuth } from '../middleware/auth';
 const router = express.Router();
 
 // List all products
+// router.get('/', async (req, res) => {
+//   try {
+//     const products = await Product
+//       .find()
+//       .sort({ createdAt: -1 })
+//       // Populate the `seller` ObjectId with the actual User document
+//       // Second argument is a projection string: here we ask for name & email (add phone if you have it)
+//       .populate('seller', 'name email')
+//       .lean();  // optional: returns plain JS objects instead of Mongoose documents
+
+//     res.json(products);
+//   } catch (err) {
+//     console.error('[PRODUCTS][LIST]', err);
+//     res.status(500).json({ error: 'Failed to fetch products' });
+//   }
+// });
+
 router.get('/', async (req, res) => {
   try {
-    const products = await Product
-      .find()
-      .sort({ createdAt: -1 })
-      // Populate the `seller` ObjectId with the actual User document
-      // Second argument is a projection string: here we ask for name & email (add phone if you have it)
-      .populate('seller', 'name email')
-      .lean();  // optional: returns plain JS objects instead of Mongoose documents
+    const {
+      q,
+      sortBy,
+      size,
+      orientation,
+      minPrice,
+      maxPrice,
+      artist,
+      page = '1',
+      limit = '24'
+    } = req.query as Record<string,string>;
 
-    res.json(products);
+    const pageNum  = Math.max(1, parseInt(page,10));
+    const pageSize = Math.max(1, parseInt(limit,10));
+
+    // build filter object
+    const filter: any = {};
+    if (q)             filter.$text = { $search: q };
+    if (orientation)   filter.orientation = orientation;
+    if (minPrice)      filter.price = { ...filter.price, $gte: Number(minPrice) };
+    if (maxPrice)      filter.price = { ...filter.price, $lte: Number(maxPrice) };
+    if (artist)        filter['seller.name'] = artist; // if you denormalized name
+
+    if (size) {
+      // size is “WIDTHxHEIGHT”
+      const [w,h] = size.split('x').map(Number);
+      filter.sizes = { $elemMatch: { widthCm: w, heightCm: h }};
+    }
+
+    // base query
+    let query = Product.find(filter).populate('seller','name email');
+
+    // sorting
+    switch (sortBy) {
+      case 'popular':
+        query = query.sort({ popularity: -1 });         break;
+      case 'bestseller':
+        query = query.sort({ salesCount: -1 });         break;
+      case 'price_asc':
+        query = query.sort({ price: 1 });               break;
+      case 'price_desc':
+        query = query.sort({ price: -1 });              break;
+      default: // 'new'
+        query = query.sort({ createdAt: -1 });          break;
+    }
+
+    // pagination
+    const totalCount = await Product.countDocuments(filter);
+    const products = await query
+      .skip((pageNum-1)*pageSize)
+      .limit(pageSize)
+      .lean();
+
+    res.json({ products, totalCount });
   } catch (err) {
     console.error('[PRODUCTS][LIST]', err);
     res.status(500).json({ error: 'Failed to fetch products' });
@@ -101,7 +163,7 @@ router.put('/:id', requireAuth(), async (req, res) => {
 // and image file that is sent in req.file
 router.patch(
   '/:id',
-  requireAuth('seller'),
+  requireAuth('seller','admin'),
   upload.single('image'),
   async (req, res) => {
     const sellerId = req.user!.id;
@@ -109,7 +171,10 @@ router.patch(
     if (!product) return res.status(404).json({ error: 'Not found' });
 
     // Ownership check
-    if (product.seller.toString() !== sellerId) {
+    // if (product.seller.toString() !== sellerId) {
+    //   return res.status(403).json({ error: 'Forbidden' });
+    // }
+    if (req.user!.role === 'seller' && product.seller.toString() !== req.user!.id) {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
@@ -156,7 +221,7 @@ router.patch(
 // delete product (Seller) - only if they own it
 router.delete(
   '/:id',
-  requireAuth('seller'),
+  requireAuth('seller', 'admin'),
   async (req, res) => {
     const sellerId = req.user!.id;
     const product = await Product.findById(req.params.id);
@@ -164,8 +229,8 @@ router.delete(
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    // Ownership check
-    if (product.seller.toString() !== sellerId) {
+    // If seller, only own products; admin can delete any
+    if (req.user!.role === 'seller' && product.seller.toString() !== req.user!.id) {
       return res.status(403).json({ error: 'Forbidden: cannot delete another seller’s product' });
     }
 

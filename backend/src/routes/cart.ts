@@ -9,11 +9,13 @@ const router = express.Router();
 
 // Get current user's cart
 router.get("/", requireAuth("customer"), async (req: any, res) => {
+  // console.log("request is asked from frontend")
   const userId = req.user.id;
   let cart = await Cart.findOne({ user: userId }).populate("items.product");
   if (!cart) {
     cart = await Cart.create({ user: userId, items: [] });
   }
+  // console.log("cart is fetched:", cart);
   res.json(cart);
 });
 
