@@ -166,7 +166,7 @@ router.patch(
   requireAuth('seller','admin'),
   upload.single('image'),
   async (req, res) => {
-    const sellerId = req.user!.id;
+    // const sellerId = req.user!.id;
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ error: 'Not found' });
 
@@ -223,7 +223,7 @@ router.delete(
   '/:id',
   requireAuth('seller', 'admin'),
   async (req, res) => {
-    const sellerId = req.user!.id;
+    // const sellerId = req.user!.id;
     const product = await Product.findById(req.params.id);
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });
