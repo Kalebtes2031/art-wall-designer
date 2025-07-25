@@ -79,64 +79,51 @@ export default function Designer() {
   };
 
   // Add a new artwork both locally and in cart
-  const handleAddToWall = async () => {
-    if (!currentProduct) {
-      console.log("❌ No product selected.");
-      return;
-    }
+  const handleAddToWall = async (
+    product: Product,
+    size: Size,
+    sizeIndex: number
+  ) => {
+    console.log("🟡 Adding to cart…", product.title, sizeIndex);
+   const updatedCart = await addToCart(product._id, sizeIndex);
+   if (!updatedCart) {
+     console.error("❌ Failed to add to cart.");
+     return;
+   }
 
-    console.log("🟡 Adding to cart...");
-    const updatedCart = await addToCart(currentProduct._id, currentSizeIndex);
+   const matched = updatedCart.items.find(
+     (i) => i.product._id === product._id && i.sizeIndex === sizeIndex
+   );
+   if (!matched) {
+     console.error("❌ New cart item not found");
+     return;
+   }
 
-    if (!updatedCart) {
-      console.error("❌ Failed to add to cart.");
-      return;
-    }
+   // convert cm → px exactly like before, but now using the passed product & sizeIndex
+   const CM_TO_PX = dimensions.width / 500;
+   const pxW = size.widthCm * CM_TO_PX;
+   const pxH = size.heightCm * CM_TO_PX;
+   const newId = `${product._id}-${sizeIndex}-${Date.now()}`;
 
-    console.log("✅ Cart updated");
+   const newItem: PlacedItem = {
+     id: newId,
+     itemId: matched._id,
+     src: product.imageUrl,
+     x: dimensions.width / 2 - pxW / 2,
+     y: dimensions.height / 2 - pxH / 2,
+     width: pxW,
+     height: pxH,
+     productId: product._id,
+     sizeIndex,
+   };
 
-    const matchedCartItem = updatedCart.items.find(
-      (item) =>
-        item.product._id === currentProduct._id &&
-        item.sizeIndex === currentSizeIndex
-    );
-
-    if (!matchedCartItem) {
-      console.error("❌ New cart item not found");
-      return;
-    }
-
-    console.log("🟢 Found cart item:", matchedCartItem);
-
-    const itemId = matchedCartItem._id;
-
-    const CM_TO_PX = dimensions.width / 500;
-    const size = currentProduct.sizes[currentSizeIndex];
-    const pxW = size.widthCm * CM_TO_PX;
-    const pxH = size.heightCm * CM_TO_PX;
-    const newId = `${currentProduct._id}-${currentSizeIndex}-${Date.now()}`;
-
-    const newItem: PlacedItem = {
-      id: newId,
-      itemId,
-      src: currentProduct.imageUrl,
-      x: dimensions.width / 2 - pxW / 2,
-      y: dimensions.height / 2 - pxH / 2,
-      width: pxW,
-      height: pxH,
-      productId: currentProduct._id,
-      sizeIndex: currentSizeIndex,
-    };
-
-    console.log("🧱 New placed item:", newItem);
-
-    setPlaced((prev) => {
-      const updated = [...prev, newItem];
-      localStorage.setItem("placedPositions", JSON.stringify(updated));
-      console.log("💾 Saved to localStorage:", updated);
-      return updated;
-    });
-  };
+   setPlaced((prev) => {
+     const updated = [...prev, newItem];
+     localStorage.setItem("placedPositions", JSON.stringify(updated));
+     console.log("💾 Saved to localStorage:", updated);
+     return updated;
+   });
+ };
 
   // Delete one artwork by its itemId
   const handleDelete = async (canvasId: string) => {
@@ -154,9 +141,9 @@ export default function Designer() {
 
   return (
     <>
-      <div className="flex w-full h-[600px] bg-white overflow-hidden">
+      <div className="flex w-full h-[600px] bg-gradient-to-r from-gray-100 to-gray-300 overflow-hidden">
         {/* Sidebar */}
-        <div className="w-[420px] shadow-xl rounded-r-2xl px-2 flex flex-col space-y-2 z-10">
+        <div className="w-[420px] shadow-xl rounded-r-2xl flex flex-col space-y-2 z-10">
           {/* <div
             onClick={() => setUploadWall((prev) => !prev)}
             className="flex justify-center items-center border-b rounded-lg p-2 cursor-pointer bg-gradient-to-r from-blue-200 to-gray-500 scrollbar-thin"
@@ -171,15 +158,15 @@ export default function Designer() {
             </h2>
           </div> */}
           {uploadWall && <WallUploader onUpload={setWallUrl} />}
-          <div className="flex-1 overflow-y-auto flex flex-col py-6 bg-gradient-to-r from-blue-200 to-gray-500 rounded-lg">
-            <div className="flex items-center justify-between mb-3 px-3">
+          <div className="flex-1 overflow-y-auto flex flex-col bg-white rounded">
+            {/* <div className="flex items-center justify-between mb-3 px-3">
               <h2 className="text-lg font-semibold text-gray-700">
                 Art Collection
               </h2>
               <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
                 {cart?.items.length || 0} placed
               </span>
-            </div>
+            </div> */}
             <ProductSidebar
               selectedProduct={currentProduct}
               selectedSizeIndex={selectedArtwork?.sizeIndex ?? currentSizeIndex}
