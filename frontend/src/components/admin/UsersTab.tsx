@@ -23,7 +23,7 @@ export default function UsersTab() {
   async function fetchUsers() {
     setLoading(true)
     try {
-      const res = await api.get<User[]>('/auth/users')
+      const res = await api.get<User[]>('/admins/users')
       setUsers(res.data)
     } catch (err) {
       console.error(err)
@@ -36,7 +36,7 @@ export default function UsersTab() {
   async function changeRole(userId: string, newRole: User['role']) {
     setUpdatingId(userId)
     try {
-      await api.patch(`/api/admins/users/${userId}/role`, { role: newRole })
+      await api.patch(`/admins/users/${userId}/role`, { role: newRole })
       setUsers(u => u.map(x => x.id === userId ? { ...x, role: newRole } : x))
       toast.success('Role updated')
     } catch (err) {
@@ -51,7 +51,7 @@ export default function UsersTab() {
     if (!window.confirm('Are you sure you want to delete this user?')) return
     setDeletingId(userId)
     try {
-      await api.delete(`/api/admins/users/${userId}`)
+      await api.delete(`/admins/users/${userId}`)
       setUsers(u => u.filter(x => x.id !== userId))
       toast.success('User deleted')
     } catch (err) {

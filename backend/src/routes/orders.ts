@@ -50,15 +50,41 @@ router.post('/:id/pay', requireAuth('customer'), async (req: any, res) => {
 });
 
 // List orders
+// router.get('/', requireAuth(), async (req: any, res) => {
+//   const { role, id } = req.user;
+//   let orders;
+//   if (role === 'admin') {
+//     orders = await Order.find()
+//     .populate('items.product')
+//     .lean<{ items: { product: any; quantity: number; priceAtOrder: number; sizeIndex: number }[] }>();
+//   } else if (role === 'seller') {
+//     const all = await Order.find().populate('items.product');
+//     orders = all.filter(o =>
+//       o.items.some(i => {
+//         const p: any = i.product;
+//         return p.seller.equals(id);
+//       })
+//     );
+//   } else {
+//     orders = await Order.find({ user: id }).populate('items.product');
+//   }
+//   res.json(orders);
+// });
+// backend/src/routes/orders.ts
 router.get('/', requireAuth(), async (req: any, res) => {
   const { role, id } = req.user;
+
+  // helper to build a base query + populates
+  const baseQuery = () =>
+    Order.find().populate('user','name email').populate('items.product');
+
   let orders;
   if (role === 'admin') {
-    orders = await Order.find()
-    .populate('items.product')
-    .lean<{ items: { product: any; quantity: number; priceAtOrder: number; sizeIndex: number }[] }>();
+    // admin sees everything
+    orders = await baseQuery().lean();
   } else if (role === 'seller') {
-    const all = await Order.find().populate('items.product');
+    // sellers see only orders containing their products
+    const all = await baseQuery();
     orders = all.filter(o =>
       o.items.some(i => {
         const p: any = i.product;
@@ -66,10 +92,16 @@ router.get('/', requireAuth(), async (req: any, res) => {
       })
     );
   } else {
-    orders = await Order.find({ user: id }).populate('items.product');
+    // customers see only their own
+    orders = await Order.find({ user: id })
+      .populate('user','name email')
+      .populate('items.product')
+      .lean();
   }
+
   res.json(orders);
 });
+
 
 // Update order status
 router.patch('/:id', requireAuth('admin','seller'), async (req: any, res) => {

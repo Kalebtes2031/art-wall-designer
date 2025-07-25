@@ -8,7 +8,11 @@ import { Types } from "mongoose";
 const router = express.Router();
 
 // Get current user's cart
-router.get("/", requireAuth("customer"), async (req: any, res) => {
+router.get("/", requireAuth(), async (req: any, res) => {
+  // only customers have carts—everyone else simply gets an empty cart
+  if (req.user.role !== "customer") {
+    return res.json({ user: req.user.id, items: [], updatedAt: new Date() });
+  }
   // console.log("request is asked from frontend")
   const userId = req.user.id;
   let cart = await Cart.findOne({ user: userId }).populate("items.product");
