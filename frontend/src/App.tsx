@@ -10,6 +10,7 @@ import Signup from "./pages/Signup";
 import { Toaster } from "react-hot-toast";
 import CartPage from "./pages/CartPage";
 import OrdersPage from "./pages/OrderPage";
+import ProfilePage from "./pages/ProfilePage";
 
 export default function App() {
   return (
@@ -34,11 +35,19 @@ export default function App() {
               </PrivateRoute>
             }
           />
+          <Route
+            path="profile"
+            element={
+              <PrivateRoute>
+                <ProfilePage />
+              </PrivateRoute>
+            }
+          />
           <Route path="cart" element={<CartPage />} />
           <Route path="orders" element={<OrdersPage />} />
           <Route path="login" element={<Login />} />
           <Route path="signup" element={<Signup />} />
-           <Route path="*" element={<Designer />} />
+          <Route path="*" element={<Designer />} />
         </Route>
       </Routes>
     </>

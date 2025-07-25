@@ -126,6 +126,49 @@ router.get('/users', requireAuth('admin'), async (req, res) => {
 });
 
 
+// ─── Get current user profile ───────────────────────────────────────────────
+router.get(
+  '/me',
+  requireAuth(),               // any authenticated role
+  async (req: any, res) => {
+    const user = await User.findById(req.user.id)
+      .select('_id name email role createdAt')
+      .lean();
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ 
+      id:        user._id.toString(),
+      name:      user.name,
+      email:     user.email,
+      role:      user.role,
+      createdAt: user.createdAt
+    });
+  }
+);
+
+// ─── Update current user profile ────────────────────────────────────────────
+router.patch(
+  '/me',
+  requireAuth(),               // any authenticated role
+  async (req: any, res) => {
+    const { name, password, email } = req.body;
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (password) user.password = password;  // password will get hashed in pre('save')
+
+    await user.save();
+    res.json({
+      id:    user._id.toString(),
+      name:  user.name,
+      email: user.email,
+      role:  user.role,
+    });
+  }
+);
+
+
 
 
 
