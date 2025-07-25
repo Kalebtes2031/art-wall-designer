@@ -1,8 +1,7 @@
-// frontend/src/context/AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-interface User {
+export interface User {
   id: string;
   name: string;
   email: string;
@@ -11,9 +10,10 @@ interface User {
 
 interface AuthContextType {
   token: string | null;
-  user:  User  | null;    // ← new
-  login: (token: string, user: User) => void;  // ← updated
+  user:  User  | null;
+  login: (token: string, user: User) => void;
   logout: () => void;
+  updateUser: (user: User) => void; // add method to update user profile
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -21,16 +21,16 @@ const AuthContext = createContext<AuthContextType>({
   user:  null,
   login: () => {},
   logout: () => {},
+  updateUser: () => {},
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
-  const [user,  setUser ] = useState<User  | null>(null);  // ← new
+  const [user,  setUser ] = useState<User  | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Hydrate from localStorage
     const savedToken = localStorage.getItem('token');
     const savedUser  = localStorage.getItem('user');
     if (savedToken && savedUser) {
@@ -55,8 +55,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     navigate('/login');
   };
 
+  const updateUser = (u: User) => {
+    setUser(u);
+    localStorage.setItem('user', JSON.stringify(u));
+  };
+
   return (
-    <AuthContext.Provider value={{ token, user, login, logout }}>
+    <AuthContext.Provider value={{ token, user, login, logout, updateUser }}>
       {!loading && children}
     </AuthContext.Provider>
   );
