@@ -5,7 +5,6 @@ import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
   const { token, user, logout } = useAuth();
-
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -124,21 +123,40 @@ export default function Navbar() {
         {/* Auth buttons: Desktop */}
         <div className="hidden md:flex items-center space-x-4">
           {token ? (
-            <div className="flex items-center space-x-12">
-              <h2 className="font-semibold ">{user?.name} </h2>
-              <button onClick={logout} className={authBtnClasses}>
-                {/* Logout icon omitted for brevity */}
+            <div className="flex items-center space-x-6">
+              {/* PROFILE LINK - NEW ADDITION */}
+              <Link 
+                to="/profile" 
+                className={`relative group flex flex-col items-center px-3 py-1 rounded-lg transition-all ${
+                  location.pathname === "/profile"
+                    ? "bg-gradient-to-br from-blue-50 to-purple-50 ring-1 ring-blue-200"
+                    : "hover:bg-gray-50"
+                }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8" />
+                  <span className="font-medium text-gray-800 group-hover:text-blue-600 transition-colors">
+                    {user?.name}
+                  </span>
+                </div>
+                {location.pathname === "/profile" && (
+                  <span className="absolute -bottom-1.5 w-8/12 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full" />
+                )}
+              </Link>
+              
+              <button 
+                onClick={logout} 
+                className={`${authBtnClasses} px-4 py-1.5 text-sm`}
+              >
                 Logout
               </button>
             </div>
           ) : (
             <>
               <Link to="/login" className={authBtnClasses}>
-                {/* Login icon omitted */}
                 Login
               </Link>
               <Link to="/signup" className={authBtnClasses}>
-                {/* Signup icon omitted */}
                 Sign Up
               </Link>
             </>
@@ -151,11 +169,13 @@ export default function Navbar() {
           className="md:hidden p-2 rounded-md text-gray-700 hover:text-blue-600 focus:outline-none"
         >
           {isMobileMenuOpen ? (
-            /* close icon */
-            <svg /* ... */ />
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           ) : (
-            /* menu icon */
-            <svg /* ... */ />
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+            </svg>
           )}
         </button>
       </div>
@@ -177,6 +197,30 @@ export default function Navbar() {
           >
             Home
           </Link>
+          {user?.role === "customer" && (
+            <Link
+              to="/cart"
+              className={`block px-3 py-2 rounded-md text-base font-medium ${
+                location.pathname === "/cart"
+                  ? "bg-blue-50 text-blue-600"
+                  : "text-gray-700 hover:bg-gray-50 hover:text-blue-600"
+              }`}
+            >
+              Cart
+            </Link>
+          )}
+          {user?.role === "customer" && (
+            <Link
+              to="/orders"
+              className={`block px-3 py-2 rounded-md text-base font-medium ${
+                location.pathname === "/orders"
+                  ? "bg-blue-50 text-blue-600"
+                  : "text-gray-700 hover:bg-gray-50 hover:text-blue-600"
+              }`}
+            >
+              Orders
+            </Link>
+          )}
           {user?.role === "admin" && (
             <Link
               to="/admin"
@@ -189,6 +233,36 @@ export default function Navbar() {
               Admin
             </Link>
           )}
+          {user?.role === "seller" && (
+            <Link
+              to="/seller"
+              className={`block px-3 py-2 rounded-md text-base font-medium ${
+                location.pathname === "/seller"
+                  ? "bg-blue-50 text-blue-600"
+                  : "text-gray-700 hover:bg-gray-50 hover:text-blue-600"
+              }`}
+            >
+              Seller
+            </Link>
+          )}
+          
+          {/* PROFILE LINK FOR MOBILE - NEW ADDITION */}
+          {token && (
+            <Link
+              to="/profile"
+              className={`block px-3 py-2 rounded-md text-base font-medium ${
+                location.pathname === "/profile"
+                  ? "bg-gradient-to-r from-blue-50 to-purple-50 text-blue-600 border-l-4 border-blue-500"
+                  : "text-gray-700 hover:bg-gray-50 hover:text-blue-600"
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8" />
+                <span>My Profile</span>
+              </div>
+            </Link>
+          )}
+
           <div className="pt-4 border-t border-gray-200">
             {token ? (
               <button
