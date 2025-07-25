@@ -140,7 +140,7 @@ export default function ProfilePage() {
             >
               {/* Name */}
               <motion.div variants={itemVariants} className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700 flex items-center">
+                <label className=" text-sm font-medium text-gray-700 flex items-center">
                   <FiUser className="mr-2 text-gray-400" /> Name
                 </label>
                 <div className="relative">
@@ -157,7 +157,7 @@ export default function ProfilePage() {
 
               {/* Email */}
               <motion.div variants={itemVariants} className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700 flex items-center">
+                <label className=" text-sm font-medium text-gray-700 flex items-center">
                   <FiMail className="mr-2 text-gray-400" /> Email
                 </label>
                 <div className="relative">
@@ -174,7 +174,7 @@ export default function ProfilePage() {
 
               {/* Password */}
               <motion.div variants={itemVariants} className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700 flex items-center">
+                <label className=" text-sm font-medium text-gray-700 flex items-center">
                   <FiLock className="mr-2 text-gray-400" /> New Password
                   <span className="ml-2 text-xs text-gray-500">(leave blank to keep current)</span>
                 </label>
@@ -197,7 +197,7 @@ export default function ProfilePage() {
                   animate={{ opacity: 1, height: 'auto' }}
                   className="space-y-2"
                 >
-                  <label className="block text-sm font-medium text-gray-700 flex items-center">
+                  <label className=" text-sm font-medium text-gray-700 flex items-center">
                     <FiLock className="mr-2 text-gray-400" /> Confirm Password
                   </label>
                   <div className="relative">
