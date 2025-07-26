@@ -100,9 +100,9 @@ export default function CartFooter() {
       {/* Floating cart button */}
       <motion.button
         onClick={() => setOpen(true)}
-        className="fixed cursor-pointer bottom-0 left-0 right-0  z-50 h-16 bg-[#D7D7D7] flex items-center justify-between px-12 shadow-xl"
+        className="fixed cursor-pointer bottom-0 left-0 right-0  z-50 h-16 bg-[#D7D7D7] flex items-center justify-between px-12 border-t-1 border-t-gray-200 shadow-t-2xl shadow-gray-600"
         // whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.98 }}
+        // whileTap={{ scale: 0.98 }}
       >
         {/* Total Price on Left */}
         <div className="text-lg font-semibold">Total: ${total.toFixed(2)}</div>
@@ -112,7 +112,7 @@ export default function CartFooter() {
           <FiShoppingCart className="h-6 w-6" />
           {itemCount > 0 && (
             <motion.span
-              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold"
+              className="absolute -top-2 -right-2 bg-[#1c3c74] text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
             >
@@ -152,15 +152,16 @@ export default function CartFooter() {
 
               {/* Header */}
               <div className="flex justify-between items-center px-6 pb-4 border-b">
-                <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-                  <FiShoppingCart className="mr-2 text-indigo-600" />
+                <p className="text-2xl flex-row font-bold text-gray-900 flex items-center">
+                  <FiShoppingCart className="mr-2 text-[#1c3c74]" />
                   Your Cart
                   {itemCount > 0 && (
-                    <span className="ml-4 mt-2 bg-blue-100 text-blue-800 text-sm font-medium px-2 py-0.5 rounded-full">
+                    <span className="ml-4 bg-blue-100 text-[#1c3c74] text-[14px] font-medium px-2 py-0.5 rounded-full">
                       {itemCount} {itemCount === 1 ? "item" : "items"}
                     </span>
                   )}
-                </h2>
+                </p>
+                
                 <button
                   onClick={() => setOpen(false)}
                   className="p-2 rounded-full hover:bg-gray-100 transition-colors"
@@ -221,11 +222,11 @@ export default function CartFooter() {
                               </p>
                             )}
 
-                            <p className="text-lg font-semibold text-indigo-600">
-                              ${(item.product.price * item.quantity).toFixed(2)}
-                            </p>
                             <p className="text-sm text-gray-500">
-                              ${item.product.price.toFixed(2)} × {item.quantity}
+                              ${item.product.price.toFixed(2)} × {item.quantity} qt
+                            </p>
+                            <p className="text-lg font-semibold text-[#5E89B3]">
+                              ${(item.product.price * item.quantity).toFixed(2)}
                             </p>
                           </div>
 
@@ -274,7 +275,7 @@ export default function CartFooter() {
                 </div>
 
                 {/* Footer */}
-                <div className="border-t w-[35%] bg-gray-50 p-16 max-h-[45vh] overflow-y-auto flex flex-col gap-y-5">
+                <div className="border-t w-[35%] bg-gray-50 p-[60px] max-h-[45vh] overflow-y-auto flex flex-col gap-y-5">
                   <div className="flex justify-center gap-x-2 items-center ">
                     <span className="text-gray-600 font-bold">Total: </span>
                     <span className="text-lg font-semibold text-gray-900">
@@ -288,7 +289,7 @@ export default function CartFooter() {
                     className={`w-full py-3 px-4 rounded-xl font-bold text-white transition-all duration-300 flex items-center justify-center ${
                       itemCount === 0
                         ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 shadow-lg"
+                        : "bg-gradient-to-r from-[#001842] border via-[#1c3c74] to-[#5E89B3] hover:from-gray-50 hover:via-gray-100 hover:to-gray-100 hover:text-[#1c3c74] border-[#1c3c74]"
                     }`}
                   >
                     {checkoutLoading ? (
@@ -326,13 +327,13 @@ export default function CartFooter() {
                   <button
                     onClick={goToCartPage}
                     disabled={itemCount === 0}
-                    className={`w-full py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center text-sm ${
+                    className={`w-full py-3 px-4 text-[#1c3c74] rounded-xl font-bold transition-colors flex items-center justify-center  ${
                       itemCount === 0
-                        ? "text-gray-400 cursor-not-allowed"
-                        : "text-indigo-600 border border-indigo-600 hover:bg-indigo-50"
+                        ? "text-[#1c3c74] cursor-not-allowed"
+                        : "bg-gradient-to-r hover:from-[#001842] hover:via-[#1c3c74] hover:to-[#5E89B3] hover:text-white border border-[#1c3c74]  "
                     }`}
                   >
-                    <FiExternalLink className="mr-2" />
+                    <FiExternalLink className="mr-2 h-5 w-5" />
                     View Full Cart
                   </button>
                 </div>

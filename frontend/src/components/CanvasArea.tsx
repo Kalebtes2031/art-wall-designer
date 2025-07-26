@@ -31,7 +31,7 @@ export default function CanvasArea({
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const leftMargin = 100;
+  const leftMargin = 0;
 
   useEffect(() => {
     if (!wallImage) return;
@@ -53,11 +53,11 @@ export default function CanvasArea({
   }, [wallImage, width, height]);
 
   return (
-    <div className="w-full h-full flex items-center justify-center">
+    <div className="w-full h-full overflow-hidden">
       <Stage
         width={width}
         height={height}
-        className="shadow-2xl rounded-xl overflow-hidden border-8 border-white bg-white"
+        className="w-full h-full overflow-hidden"
         onMouseDown={(e) => {
           console.log("Clicked on:", e.target.name());
           const stage = e.target.getStage();

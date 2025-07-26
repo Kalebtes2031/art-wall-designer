@@ -231,9 +231,7 @@ export default function SellerDashboard() {
       }
 
       try {
-        const res = await api.patch(`/products/${productId}`, fd, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        const res = await api.patch(`/products/${productId}`, fd,);
 
         // Replace product with updated version
         setProducts((prev) =>
@@ -274,7 +272,8 @@ export default function SellerDashboard() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gradient-to-r from-gray-50 to-gray-100">
+    <div className="max-w-7xl mx-auto px-4  sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Seller Dashboard</h1>
         <p className="mt-2 text-gray-600">
@@ -503,7 +502,7 @@ export default function SellerDashboard() {
                 <button
                   type="submit"
                   disabled={creating}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-[#001842] via-[#1c3c74] to-[#5E89B3] hover:from-[#5E89B3] hover:via-[#1c3c74] hover:to-[#001842] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                 >
                   <FiPlus className="-ml-1 mr-2 h-5 w-5" />
                   {creating ? "Creating..." : "Create Product"}
@@ -906,6 +905,6 @@ export default function SellerDashboard() {
           )}
         </section>
       )}
-    </div>
+    </div></div>
   );
 }

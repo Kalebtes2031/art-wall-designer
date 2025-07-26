@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Group, Image as KonvaImage, Rect, Text } from "react-konva";
 import useImage from "use-image";
+import Konva from "konva";
 
 interface ArtImageProps {
   id?: string;
@@ -37,51 +38,74 @@ export default function ArtImage({
   onMove,
 }: ArtImageProps) {
   const [image] = useImage(src);
-  const groupRef = useRef<any>(null);
+  const groupRef = useRef<Konva.Group>(null);
+  const deleteRef = useRef<Konva.Text>(null);
+  const editRef   = useRef<Konva.Text>(null);
+
   const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
-  const [hovered, setHovered] = useState(false);
 
-  // Compute displayed dimensions using either passed width/height or natural image size
-  const displayWidth = width ?? naturalSize.width;
-  const displayHeight = height ?? naturalSize.height;
-
-  // Update natural size once image loads
+  // When the image loads, capture its natural size
   useEffect(() => {
     if (image) {
       setNaturalSize({ width: image.width, height: image.height });
     }
   }, [image]);
 
+  // Dimensions we actually draw at
+  const displayWidth  = width  ?? naturalSize.width;
+  const displayHeight = height ?? naturalSize.height;
+
+  // Helper to tween opacity + a quick pulse
+  function animateIcon(node: Konva.Text | null, toVisible: boolean) {
+    if (!node) return;
+    node.to({
+      opacity: toVisible ? 1 : 0,
+      scaleX:  toVisible ? 1.2 : 1,
+      scaleY:  toVisible ? 1.2 : 1,
+      duration: 0.2,
+      easing: Konva.Easings.EaseInOut,
+    });
+  }
+
   return (
     <Group
+      ref={groupRef}
       name={isWall ? "wall" : ""}
       x={x}
       y={y}
-      ref={groupRef}
       draggable={!isWall}
-      onDragEnd={(e) => {
+      scaleX={scaleX}
+      scaleY={scaleY}
+
+      onDragEnd={e => {
         if (id && onMove) onMove(id, e.target.x(), e.target.y());
       }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      onClick={(e) => {
-        e.cancelBubble = true;
-        onSelect?.();
-        if (!isWall) onEditSize?.(); // ✅ Only open modal for artworks, not wall
+
+      onMouseEnter={() => {
+        animateIcon(deleteRef.current, true);
+        animateIcon(editRef.current,   true);
       }}
-      onTap={(e) => {
+      onMouseLeave={() => {
+        animateIcon(deleteRef.current, false);
+        animateIcon(editRef.current,   false);
+      }}
+
+      onClick={e => {
         e.cancelBubble = true;
         onSelect?.();
         if (!isWall) onEditSize?.();
       }}
-      scaleX={scaleX}
-      scaleY={scaleY}
+      onTap={e => {
+        e.cancelBubble = true;
+        onSelect?.();
+        if (!isWall) onEditSize?.();
+      }}
     >
-      {/* Optional background frame for non-wall images */}
+
+      {/* --- your existing art frame --- */}
       {!isWall && image && (
         <Rect
-          x={-7.5}
-          y={-7.5}
+          x={-7.5} y={-7.5}
           width={displayWidth + 15}
           height={displayHeight + 15}
           fill="#fff"
@@ -95,12 +119,10 @@ export default function ArtImage({
         />
       )}
 
-      {/* Artwork image */}
       <KonvaImage
-      name={isWall ? "wall" : undefined}
+        name={isWall ? "wall" : undefined}
         image={image}
-        x={0}
-        y={0}
+        x={0} y={0}
         width={displayWidth}
         height={displayHeight}
         shadowColor="rgba(0,0,0,0.3)"
@@ -111,56 +133,71 @@ export default function ArtImage({
         cornerRadius={isWall ? 0 : 5}
       />
 
-      {/* Hover icons for delete and edit size */}
-      {hovered && !isWall && (
-        <>
-          {/* Delete icon */}
-          <Text
-            text="🗑️"
-            fontSize={20}
-            x={displayWidth + 12}
-            y={8 + 24}
-            onClick={(e) => {
-              e.cancelBubble = true;
-              onDelete?.();
-            }}
-            onMouseEnter={(e) => {
-              e.target
-                .getStage()
-                ?.container()
-                .style.setProperty("cursor", "pointer");
-            }}
-            onMouseLeave={(e) => {
-              e.target
-                .getStage()
-                ?.container()
-                .style.setProperty("cursor", "default");
-            }}
-          />
-          {/* Edit-size icon */}
-          <Text
-            text="✎"
-            fontSize={20}
-            x={displayWidth + 14}
-            y={4}
-            onClick={(e) => {
-              e.cancelBubble = true;
-              onEditSize?.();
-            }}
-            onMouseEnter={(e) => {
-              e.target
-                .getStage()
-                ?.container()
-                .style.setProperty("cursor", "pointer");
-            }}
-            onMouseLeave={(e) => {
-              e.target
-                .getStage()
-                ?.container()
-                .style.setProperty("cursor", "default");
-            }}
-          />
-        </>
+      {/* --- delete icon --- */}
+      {!isWall && (
+        <Text
+          ref={deleteRef}
+          text="🗑️"
+          fontSize={20}
+          x={displayWidth + 15}
+          y={displayHeight - 15}
+          opacity={0}           // start hidden
+          listening             // always catch events
+          hitStrokeWidth={10}   // bigger clickable area
+          onClick={e => {
+            e.cancelBubble = true;
+            onDelete?.();
+          }}
+          onMouseEnter={e => {
+            const stage = e.target.getStage();
+            if (stage) {
+              const container = stage.container();
+              if (container) {
+                container.style.cursor = "pointer";
+              }
+            }
+          }}
+          
+          onMouseLeave={e => {
+            const stage = e.target.getStage();
+            if (stage) {
+              const container = stage.container();
+              if (container) {
+                container.style.cursor = "default";
+              }
+            }
+          }}
+        />
+      )}
+
+      {/* --- edit-size icon --- */}
+      {!isWall && (
+        <Text
+          ref={editRef}
+          text="✎"
+          fontSize={20}
+          x={displayWidth + 15}
+          y={displayHeight - 48}
+          opacity={0}
+          listening
+          hitStrokeWidth={10}
+          onClick={e => {
+            e.cancelBubble = true;
+            onEditSize?.();
+          }}
+          onMouseEnter={e => {
+               const stage = e.target.getStage();
+               if (stage) {
+                 stage.container().style.cursor = "pointer";
+               }
+             }}
+             onMouseLeave={e => {
+                 const stage = e.target.getStage();
+                 if (stage) {
+                   stage.container().style.cursor = "default";
+                 }
+               }}
+        />
       )}
     </Group>
   );

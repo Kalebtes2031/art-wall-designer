@@ -18,8 +18,8 @@ export default function SizeModal({
   onEditSize,
 }: SizeModalProps) {
   return (
-    <div className="fixed  w-[403px] mt-[56px] inset-0 bg-opacity-40 flex justify-start items-center z-100">
-      <div className="w-[403px] bg-[#D7D7D7] h-full shadow-xl animate-slide-in-left">
+    <div className="fixed  w-[420px] mt-[65px] inset-0 bg-opacity-40 flex justify-start items-center z-100">
+      <div className="w-[420px] bg-[#D7D7D7] h-full shadow-xl animate-slide-in-left">
         {/* Header */}
         <div className="flex items-center justify-between px-6  bg-gray-50 border-b">
           <div>

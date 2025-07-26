@@ -3,9 +3,9 @@ import Navbar from './Navbar';
 
 export default function MainLayout() {
   return (
-    <div className="h-screen flex flex-col overflow-auto">
+    <div className="md:max-h-screen flex flex-col overflow-auto">
       <Navbar />
-      <div className="flex-1 pt-[70px]">
+      <div className="flex-1 pt-[65px]">
         <Outlet />
       </div>
     </div>
