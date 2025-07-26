@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import bcrypt from 'bcrypt';
 import { requireAuth } from '../middleware/auth';
+import { upload } from '../services/upload';
 
 const router = express.Router();
 
@@ -47,6 +48,7 @@ router.post('/login', async (req, res) => {
       name:  user.name,
       email: user.email,
       role:  user.role,
+      profileImage: user.profileImage,
     } });
   } catch (err) {
     console.error('[AUTH][LOGIN] Unexpected error:', err);
@@ -103,6 +105,7 @@ router.post('/signup', async (req, res) => {
          name:  newUser.name,
         email: newUser.email,
         role: newUser.role,
+        profileImage: newUser.profileImage,
       },
     });
   } catch (err) {
@@ -114,14 +117,15 @@ router.post('/signup', async (req, res) => {
 
 // List all users (admin only)
 router.get('/users', requireAuth('admin'), async (req, res) => {
-  const all = await User.find().select('_id name email role').lean();
-  // map _id to id
-  const out = all.map(u => ({
-    id:    u._id.toString(),
-    name:  u.name,
-    email: u.email,
-    role:  u.role,
-  }));
+      const all = await User.find().select('_id name email role profileImage').lean();
+    // map _id to id
+    const out = all.map(u => ({
+      id:    u._id.toString(),
+      name:  u.name,
+      email: u.email,
+      role:  u.role,
+      profileImage: u.profileImage,
+    }));
   res.json(out);
 });
 
@@ -132,7 +136,7 @@ router.get(
   requireAuth(),               // any authenticated role
   async (req: any, res) => {
     const user = await User.findById(req.user.id)
-      .select('_id name email role createdAt')
+      .select('_id name email role profileImage createdAt')
       .lean();
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json({ 
@@ -140,6 +144,7 @@ router.get(
       name:      user.name,
       email:     user.email,
       role:      user.role,
+      profileImage: user.profileImage,
       createdAt: user.createdAt
     });
   }
@@ -148,7 +153,8 @@ router.get(
 // ─── Update current user profile ────────────────────────────────────────────
 router.patch(
   '/me',
-  requireAuth(),               // any authenticated role
+  requireAuth(),  
+  upload.single('profileImage'),            // any authenticated role
   async (req: any, res) => {
     const { name, password, email } = req.body;
     const user = await User.findById(req.user.id);
@@ -158,18 +164,60 @@ router.patch(
     if (email) user.email = email;
     if (password) user.password = password;  // password will get hashed in pre('save')
 
+    // If a new file was uploaded, update the profileImage URL:
+    if (req.file) {
+      user.profileImage = `/uploads/${req.file.filename}`;
+    }
+
     await user.save();
     res.json({
       id:    user._id.toString(),
       name:  user.name,
       email: user.email,
       role:  user.role,
+      profileImage: user.profileImage,
     });
   }
 );
 
+// ─── Upload profile image ────────────────────────────────────────────────────
+// router.post(
+//   '/profile-image',
+//   requireAuth(),               // any authenticated role
+//   upload.single('profileImage'),
+//   async (req: any, res) => {
+//     if (!req.file) {
+//       return res.status(400).json({ error: 'Profile image is required' });
+//     }
 
+//     try {
+//       const user = await User.findById(req.user.id);
+//       if (!user) {
+//         return res.status(404).json({ error: 'User not found' });
+//       }
 
+//       // Build the URL for the uploaded profile image
+//       const imageUrl = `/uploads/${req.file.filename}`;
+//       user.profileImage = imageUrl;
+//       await user.save();
+
+//       res.json({
+//         message: 'Profile image uploaded successfully',
+//         profileImage: imageUrl,
+//         user: {
+//           id: user._id.toString(),
+//           name: user.name,
+//           email: user.email,
+//           role: user.role,
+//           profileImage: user.profileImage,
+//         },
+//       });
+//     } catch (err) {
+//       console.error('[AUTH][PROFILE-IMAGE] Error:', err);
+//       res.status(500).json({ error: 'Failed to upload profile image' });
+//     }
+//   }
+// );
 
 
 export default router;
