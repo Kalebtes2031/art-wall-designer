@@ -7,7 +7,6 @@ import CanvasArea from "../components/CanvasArea";
 import CartFooter from "../components/CartFooter";
 import { useCart } from "../context/CartContext";
 import SizeModal from "../components/SizeModal";
-import type { Cart } from "../types/Cart";
 
 interface PlacedItem {
   id: string; // UI key
@@ -39,13 +38,13 @@ export default function Designer() {
 
   const [dimensions, setDimensions] = useState({
     width: window.innerWidth - 420,
-    height: window.innerHeight - 40,
+    height: window.innerHeight - 122,
   });
   useEffect(() => {
     const updateDims = () =>
       setDimensions({
         width: window.innerWidth - 420,
-        height: window.innerHeight - 40,
+        height: window.innerHeight - 122,
       });
     window.addEventListener("resize", updateDims);
     return () => window.removeEventListener("resize", updateDims);
@@ -140,10 +139,10 @@ export default function Designer() {
   };
 
   return (
-    <>
-      <div className="flex w-full h-[600px] bg-gradient-to-r from-gray-100 to-gray-300 overflow-hidden">
+    <div className="flex flex-col bg-[#D7D7D7] w-full h-full justify-between">
+      <div className="flex flex-1 w-full    overflow-hidden">
         {/* Sidebar */}
-        <div className="w-[420px] shadow-xl rounded-r-2xl flex flex-col space-y-2 z-10">
+        <div className="w-[420px] shadow-xl flex flex-col space-y-2 z-10">
           {/* <div
             onClick={() => setUploadWall((prev) => !prev)}
             className="flex justify-center items-center border-b rounded-lg p-2 cursor-pointer bg-gradient-to-r from-blue-200 to-gray-500 scrollbar-thin"
@@ -158,7 +157,7 @@ export default function Designer() {
             </h2>
           </div> */}
           {uploadWall && <WallUploader onUpload={setWallUrl} />}
-          <div className="flex-1 overflow-y-auto flex flex-col bg-white rounded">
+          <div className="flex-1 overflow-y-auto flex flex-col ">
             {/* <div className="flex items-center justify-between mb-3 px-3">
               <h2 className="text-lg font-semibold text-gray-700">
                 Art Collection
@@ -185,7 +184,7 @@ export default function Designer() {
         </div>
 
         {/* Canvas */}
-        <div className="flex-1 bg-red-700">
+        <div className="flex-1 overflow-hidden">
           <CanvasArea
             wallUrl={wallUrl}
             artworks={placed}
@@ -252,6 +251,6 @@ export default function Designer() {
       )}
 
       <CartFooter />
-    </>
+    </div>
   );
 }
