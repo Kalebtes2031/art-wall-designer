@@ -11,6 +11,7 @@ import { Toaster } from "react-hot-toast";
 import CartPage from "./pages/CartPage";
 import OrdersPage from "./pages/OrderPage";
 import ProfilePage from "./pages/ProfilePage";
+import ScreenGuard from "./components/ScreenGuard";
 
 export default function App() {
   return (
@@ -18,7 +19,15 @@ export default function App() {
       <Toaster position="top-right" reverseOrder={false} />
       <Routes>
         <Route path="/" element={<MainLayout />}>
-          <Route index element={<Designer />} />
+          <Route index element={
+            <ScreenGuard
+            minWidth={1000}
+            minHeight={720}
+              // requireFullScreen={true}
+            >
+              <Designer />
+            </ScreenGuard>
+          } />
           <Route
             path="admin"
             element={
@@ -47,7 +56,15 @@ export default function App() {
           <Route path="orders" element={<OrdersPage />} />
           <Route path="login" element={<Login />} />
           <Route path="signup" element={<Signup />} />
-          <Route path="*" element={<Designer />} />
+          <Route path="*" element={
+            <ScreenGuard
+            minWidth={1000}
+            minHeight={720}
+            // requireFullScreen={true}
+          >
+            <Designer />
+          </ScreenGuard>
+          } />
         </Route>
       </Routes>
     </>
