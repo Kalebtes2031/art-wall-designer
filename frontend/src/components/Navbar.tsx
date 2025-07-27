@@ -49,77 +49,39 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop nav links */}
-        <div className="hidden transition-all duration-300 md:flex items-center space-x-18">
-          <Link
-            to="/"
-            className={`relative font-medium transition-all duration-300 ${location.pathname === "/"
-                ? "text-gray-100 text-[17px] font-bold"
-                : "text-white hover:text-gray-300"
-              }`}
-          >
-            Home
-            {location.pathname === "/" && (
-              <span className="absolute bottom-0 left-0 w-full h-0.5 bg-white rounded-full" />
-            )}
-          </Link>
+        <div className="hidden transition-all duration-300 md:flex items-center space-x-16">
+  {[
+    { to: "/", label: "Home", roles: [] },
+    { to: "/cart", label: "Cart", roles: ["customer"] },
+    { to: "/orders", label: "Order", roles: ["customer"] },
+    { to: "/admin", label: "Admin", roles: ["admin"] },
+    { to: "/seller", label: "Seller", roles: ["seller"] },
+  ]
+    .filter(({ roles }) => roles.length === 0 || (user?.role && roles.includes(user.role)))
+    .map(({ to, label }) => {
+      const isActive = location.pathname === to;
 
-          {user?.role === "customer" && (
-            <Link
-              to="/cart"
-              className={`relative font-medium transition-colors ${location.pathname === "/cart"
-                  ? "text-gray-100 text-[17px] font-bold"
-                : "text-white hover:text-gray-300 "
-                }`}
-            >
-              Cart
-              {location.pathname === "/cart" && (
-                <span className="absolute bottom-0 left-0 w-full h-0.5  bg-white  rounded-full" />
-              )}
-            </Link>
-          )}
-          {user?.role === "customer" && (
-            <Link
-              to="/orders"
-              className={`relative font-medium transition-colors ${location.pathname === "/orders"
-                  ? "text-gray-100 text-[17px] font-bold"
-                : "text-white hover:text-gray-300"
-                }`}
-            >
-              Order
-              {location.pathname === "/orders" && (
-                <span className="absolute bottom-0 left-0 w-full h-0.5  bg-white  rounded-full" />
-              )}
-            </Link>
-          )}
-          {user?.role === "admin" && (
-            <Link
-              to="/admin"
-              className={`relative font-medium transition-colors ${location.pathname === "/admin"
-                  ? "text-gray-100 text-[17px] font-bold"
-                : "text-white hover:text-gray-300"
-                }`}
-            >
-              Admin
-              {location.pathname === "/admin" && (
-                <span className="absolute bottom-0 left-0 w-full h-0.5  bg-white  rounded-full" />
-              )}
-            </Link>
-          )}
-          {user?.role === "seller" && (
-            <Link
-              to="/seller"
-              className={`relative font-medium transition-colors ${location.pathname === "/seller"
-                 ? "text-gray-100 text-[17px] font-bold"
-                : "text-white hover:text-gray-300"
-                }`}
-            >
-              seller
-              {location.pathname === "/seller" && (
-                <span className="absolute bottom-0 left-0 w-full h-0.5  bg-white  rounded-full" />
-              )}
-            </Link>
-          )}
-        </div>
+      return (
+        <Link
+          key={to}
+          to={to}
+          className={`relative transition-all duration-300 transform ${
+            isActive
+              ? "text-white scale-105"
+              : "text-white/80 hover:text-white hover:scale-105"
+          }`}
+        >
+          <span className="inline-block">{label}</span>
+          <span
+            className={`absolute bottom-0 left-0 h-0.5 rounded-full bg-white transition-all duration-300 ${
+              isActive ? "w-full opacity-100" : "w-0 opacity-0"
+            }`}
+          />
+        </Link>
+      );
+    })}
+</div>
+
 
         {/* Auth buttons: Desktop */}
         <div className="hidden md:flex items-center space-x-4">

@@ -5,6 +5,7 @@ import api from "../utils/api";
 import { toast } from "react-hot-toast";
 import { FiUser, FiMail, FiLock, FiSave, FiCheckCircle, FiEdit2, FiX, FiCamera } from "react-icons/fi";
 import { motion } from "framer-motion";
+import { Spinner } from "../components/Spinner";
 
 interface MeResponse {
   id: string;
@@ -118,9 +119,10 @@ export default function ProfilePage() {
   }
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
-    </div>
+    // <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    //   <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+    // </div>
+    <Spinner />
   );
 
   // Get user initials for avatar
@@ -135,7 +137,7 @@ export default function ProfilePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-10"
+          className="text-center mb-6 mt-4"
         >
           <h1 className="font-display text-4xl font-bold text-gray-800">Your Profile</h1>
           <p className="font-heading text-gray-500 mt-2">Manage your account settings</p>
@@ -359,12 +361,12 @@ export default function ProfilePage() {
                   </div>
 
                   <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <button className="text-gray-700 hover:bg-gray-100 py-3 px-4 rounded-lg border border-gray-200 transition-colors">
+                    {/* <button className="text-gray-700 hover:bg-gray-100 py-3 px-4 rounded-lg border border-gray-200 transition-colors">
                       Download Data
                     </button>
                     <button className="text-gray-700 hover:bg-gray-100 py-3 px-4 rounded-lg border border-gray-200 transition-colors">
                       Two-Factor Auth
-                    </button>
+                    </button> */}
                     <button className="text-red-600 hover:bg-red-50 py-3 px-4 rounded-lg border border-red-200 transition-colors">
                       Delete Account
                     </button>

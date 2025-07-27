@@ -76,8 +76,8 @@ export default function OrdersPage() {
 
   if (loading) {
     return (
-      <div className="p-6 max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Order History</h1>
+      <div className="p-6 pt-[80px] max-w-4xl mx-auto">
+        <h1 className="text-3xl text-center font-bold text-gray-900 mb-10">Your Art Collection Orders</h1>
         <div className="space-y-6">
           {[...Array(4)].map((_, i) => (
             <OrderSkeleton key={i} />
@@ -88,7 +88,7 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="p-6 min-h-screen pt-[75px] max-w-4xl mx-auto">
+    <div className="p-6 min-h-screen pt-[80px] max-w-4xl mx-auto">
       <header className="mb-10 text-center">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Your Art Collection Orders</h1>
         <p className="mt-2 text-gray-600">Review your purchased artworks and their status</p>
