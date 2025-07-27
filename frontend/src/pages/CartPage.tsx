@@ -112,7 +112,12 @@ export default function CartPage() {
         {cart.items.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
             <div className="max-w-md mx-auto">
-              <div className="bg-gray-200 border-2 border-dashed rounded-xl w-32 h-32 mx-auto mb-6" />
+              <img 
+                src="/emptycart.png"
+                alt="Empty Cart"
+                className="w-32 h-32 mx-auto mb-6"
+              />
+              {/* <div className="bg-gray-200 border-2 border-dashed rounded-xl w-32 h-32 mx-auto mb-6" /> */}
               <h2 className="text-2xl font-bold text-gray-900 mb-3">
                 Your cart is empty
               </h2>
@@ -122,7 +127,7 @@ export default function CartPage() {
               </p>
               <button
                 onClick={() => navigate("/designer")}
-                className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md"
+                className="px-6 py-3 cursor-pointer bg-gradient-to-tr from-[#001842] via-[#1c3c74] to-[#5E89B3] text-white rounded-lg font-medium hover:from-[#5E89B3] hover:via-[#1c3c74] hover:to-[#001842] transition-all shadow-md"
               >
                 Browse Art Collection
               </button>
