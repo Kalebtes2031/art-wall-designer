@@ -7,6 +7,7 @@ import CanvasArea from "../components/CanvasArea";
 import CartFooter from "../components/CartFooter";
 import { useCart } from "../context/CartContext";
 import SizeModal from "../components/SizeModal";
+import { getAssetUrl } from "../utils/getAssetUrl";
 
 interface PlacedItem {
   id: string; // UI key
@@ -107,7 +108,7 @@ export default function Designer() {
    const newItem: PlacedItem = {
      id: newId,
      itemId: matched._id,
-     src: product.imageUrl,
+     src: getAssetUrl(product.imageUrl),
      x: dimensions.width / 2 - pxW / 2,
      y: dimensions.height / 2 - pxH / 2,
      width: pxW,
