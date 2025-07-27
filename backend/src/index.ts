@@ -14,10 +14,12 @@ dotenv.config();
 
 
 const app = express();
-// app.use(express.json());
 app.use(cors({
-  origin: ['https://artwalldesigner.onrender.com', 'https://art-wall-designer.vercel.app/']
+  origin: ['https://artwalldesigner.onrender.com', 'https://art-wall-designer.vercel.app'],
+  credentials: true,
 }));
+
+app.use(express.json());
 
 
 // serve uploaded images
