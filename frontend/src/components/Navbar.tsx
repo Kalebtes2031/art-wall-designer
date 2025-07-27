@@ -44,7 +44,7 @@ export default function Navbar() {
             />
           </div>
           <span className="font-display font-bold text-xl bg-gradient-to-r from-gray-50 via-gray-300 to-gray-500 bg-clip-text text-transparent transition-all">
-            ArtGallery
+            ArtWallDesigner
           </span>
         </Link>
 

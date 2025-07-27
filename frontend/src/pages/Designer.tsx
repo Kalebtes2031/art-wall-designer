@@ -139,7 +139,7 @@ export default function Designer() {
   };
 
   return (
-    <div className="flex flex-col bg-[#D7D7D7] w-full h-full justify-between">
+    <div className=" h-screen flex flex-col bg-[#D7D7D7] w-full  justify-between pt-[65px]">
       <div className="flex flex-1 w-full    overflow-hidden">
         {/* Sidebar */}
         <div className="w-[420px] shadow-xl flex flex-col space-y-2 z-10">
