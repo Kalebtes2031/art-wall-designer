@@ -1,168 +1,234 @@
 // backend/src/routes/auth.ts
-import express from 'express';
-import jwt from 'jsonwebtoken';
-import User from '../models/User';
-import bcrypt from 'bcrypt';
-import { requireAuth } from '../middleware/auth';
-import { upload } from '../services/upload';
+import express from "express";
+import jwt from "jsonwebtoken";
+import User from "../models/User";
+import bcrypt from "bcrypt";
+import { requireAuth } from "../middleware/auth";
+import { upload } from "../services/upload";
+import { OAuth2Client } from "google-auth-library";
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const router = express.Router();
 
 // ─── LOGIN ─────────────────────────────────────────────────────────────────────
-router.post('/login', async (req, res) => {
-  console.log('[AUTH][LOGIN] incoming request:', req.body);
+router.post("/login", async (req, res) => {
+  console.log("[AUTH][LOGIN] incoming request:", req.body);
   try {
     const { email, password } = req.body;
 
-    console.log('[AUTH][LOGIN] looking up user by email:', email);
+    console.log("[AUTH][LOGIN] looking up user by email:", email);
     const user = await User.findOne({ email });
     if (!user) {
-      console.warn('[AUTH][LOGIN] no user found for email:', email);
-      return res.status(401).json({ error: 'Invalid credentials' });
+      console.warn("[AUTH][LOGIN] no user found for email:", email);
+      return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    console.log('[AUTH][LOGIN] comparing password for user:', user._id);
+    if (!user.password) {
+      console.warn("[AUTH][LOGIN] password is missing for user:", user._id);
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+    console.log("[AUTH][LOGIN] comparing password for user:", user._id);
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
-      console.warn('[AUTH][LOGIN] password mismatch for user:', user._id);
-      return res.status(401).json({ error: 'Invalid credentials' });
+      console.warn("[AUTH][LOGIN] password mismatch for user:", user._id);
+      return res.status(401).json({ error: "Invalid credentials" });
     }
 
     const secret = process.env.JWT_SECRET;
     if (!secret) {
-      console.error('[AUTH][LOGIN] Missing JWT_SECRET in env');
-      return res.status(500).json({ error: 'Server configuration error' });
+      console.error("[AUTH][LOGIN] Missing JWT_SECRET in env");
+      return res.status(500).json({ error: "Server configuration error" });
     }
 
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      secret,
-      { expiresIn: '1d' }
-    );
-    console.log('[AUTH][LOGIN] token generated for user:', user._id);
+    const token = jwt.sign({ id: user._id, role: user.role }, secret, {
+      expiresIn: "1d",
+    });
+    console.log("[AUTH][LOGIN] token generated for user:", user._id);
 
-    res.json({ 
-      token, 
+    res.json({
+      token,
       user: {
-      id:    user._id,
-      name:  user.name,
-      email: user.email,
-      role:  user.role,
-      profileImage: user.profileImage,
-    } });
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        profileImage: user.profileImage,
+      },
+    });
   } catch (err) {
-    console.error('[AUTH][LOGIN] Unexpected error:', err);
-    res.status(500).json({ error: 'Login failed' });
+    console.error("[AUTH][LOGIN] Unexpected error:", err);
+    res.status(500).json({ error: "Login failed" });
   }
 });
 
-
 // ─── SIGNUP ────────────────────────────────────────────────────────────────────
-router.post('/signup', async (req, res) => {
-  console.log('[AUTH][SIGNUP] incoming request:', req.body);
+router.post("/signup", async (req, res) => {
+  console.log("[AUTH][SIGNUP] incoming request:", req.body);
   try {
     const { email, password, name } = req.body;
 
-    console.log('[AUTH][SIGNUP] checking if user exists for email:', email);
+    console.log("[AUTH][SIGNUP] checking if user exists for email:", email);
     const existing = await User.findOne({ email });
     if (existing) {
-      console.warn('[AUTH][SIGNUP] email already in use:', email);
-      return res.status(400).json({ error: 'Email already in use' });
+      console.warn("[AUTH][SIGNUP] email already in use:", email);
+      return res.status(400).json({ error: "Email already in use" });
     }
 
     // console.log('[AUTH][SIGNUP] hashing password');
     // const hashed = await bcrypt.hash(password, 10);
     // console.log('[AUTH][SIGNUP] password hashed');
 
-    console.log('[AUTH][SIGNUP] creating user document');
+    console.log("[AUTH][SIGNUP] creating user document");
     const newUser = await User.create({
       name,
       email,
       password: password,
-      role: 'customer',       // force customer
+      role: "customer", // force customer
     });
-    console.log('[AUTH][SIGNUP] user created with id:', newUser._id);
+    console.log("[AUTH][SIGNUP] user created with id:", newUser._id);
 
     const secret = process.env.JWT_SECRET;
     if (!secret) {
-      console.error('[AUTH][SIGNUP] Missing JWT_SECRET in env');
-      return res.status(500).json({ error: 'Server configuration error' });
+      console.error("[AUTH][SIGNUP] Missing JWT_SECRET in env");
+      return res.status(500).json({ error: "Server configuration error" });
     }
 
-    console.log('[AUTH][SIGNUP] signing JWT');
-    const token = jwt.sign(
-      { id: newUser._id, role: newUser.role },
-      secret,
-      { expiresIn: '1d' }
-    );
-    console.log('[AUTH][SIGNUP] JWT signed for new user:', newUser._id);
+    console.log("[AUTH][SIGNUP] signing JWT");
+    const token = jwt.sign({ id: newUser._id, role: newUser.role }, secret, {
+      expiresIn: "1d",
+    });
+    console.log("[AUTH][SIGNUP] JWT signed for new user:", newUser._id);
 
     res.status(201).json({
-      message: 'User created successfully',
+      message: "User created successfully",
       token,
       user: {
         id: newUser._id,
-         name:  newUser.name,
+        name: newUser.name,
         email: newUser.email,
         role: newUser.role,
         profileImage: newUser.profileImage,
       },
     });
   } catch (err) {
-    console.error('[AUTH][SIGNUP] Unexpected error:', err);
-    res.status(500).json({ error: 'Failed to create user' });
+    console.error("[AUTH][SIGNUP] Unexpected error:", err);
+    res.status(500).json({ error: "Failed to create user" });
+  }
+});
+
+// ─── GOOGLE AUTH ──────────────────────────────────────────────────────────────
+router.post('/google', async (req, res) => {
+  const { idToken } = req.body;
+
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    if (!payload) throw new Error('Invalid token');
+
+    const { sub: googleId, email, name, picture } = payload;
+
+    // Try to find user by googleId first, or fallback to email
+    let user = await User.findOne({ googleId }) || await User.findOne({ email });
+
+    if (user) {
+      // Link Google account
+      user.googleId = googleId;
+
+      // ✅ Only update image if not already custom uploaded
+      if (!user.profileImage || !user.profileImage.includes('/uploads/')) {
+        user.profileImage = picture;
+      }
+
+      await user.save();
+    } else {
+      // New user signup
+      user = await User.create({
+        googleId,
+        email,
+        name,
+        profileImage: picture,
+        role: 'customer',
+      });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET!,
+      { expiresIn: '1d' }
+    );
+
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        profileImage: user.profileImage,
+      },
+    });
+  } catch (err) {
+    console.error('[AUTH][GOOGLE]', err);
+    res.status(401).json({ error: 'Google authentication failed' });
   }
 });
 
 
+
 // List all users (admin only)
-router.get('/users', requireAuth('admin'), async (req, res) => {
-      const all = await User.find().select('_id name email role profileImage').lean();
-    // map _id to id
-    const out = all.map(u => ({
-      id:    u._id.toString(),
-      name:  u.name,
-      email: u.email,
-      role:  u.role,
-      profileImage: u.profileImage,
-    }));
+router.get("/users", requireAuth("admin"), async (req, res) => {
+  const all = await User.find()
+    .select("_id name email role profileImage")
+    .lean();
+  // map _id to id
+  const out = all.map((u) => ({
+    id: u._id.toString(),
+    name: u.name,
+    email: u.email,
+    role: u.role,
+    profileImage: u.profileImage,
+  }));
   res.json(out);
 });
 
-
 // ─── Get current user profile ───────────────────────────────────────────────
 router.get(
-  '/me',
-  requireAuth(),               // any authenticated role
+  "/me",
+  requireAuth(), // any authenticated role
   async (req: any, res) => {
     const user = await User.findById(req.user.id)
-      .select('_id name email role profileImage createdAt')
+      .select("_id name email role profileImage createdAt")
       .lean();
-    if (!user) return res.status(404).json({ error: 'User not found' });
-    res.json({ 
-      id:        user._id.toString(),
-      name:      user.name,
-      email:     user.email,
-      role:      user.role,
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.json({
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      role: user.role,
       profileImage: user.profileImage,
-      createdAt: user.createdAt
+      createdAt: user.createdAt,
     });
   }
 );
 
 // ─── Update current user profile ────────────────────────────────────────────
 router.patch(
-  '/me',
-  requireAuth(),  
-  upload.single('profileImage'),            // any authenticated role
+  "/me",
+  requireAuth(),
+  upload.single("profileImage"), // any authenticated role
   async (req: any, res) => {
     const { name, password, email } = req.body;
     const user = await User.findById(req.user.id);
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user) return res.status(404).json({ error: "User not found" });
 
     if (name) user.name = name;
     if (email) user.email = email;
-    if (password) user.password = password;  // password will get hashed in pre('save')
+    if (password) user.password = password; // password will get hashed in pre('save')
 
     // If a new file was uploaded, update the profileImage URL:
     if (req.file) {
@@ -171,10 +237,10 @@ router.patch(
 
     await user.save();
     res.json({
-      id:    user._id.toString(),
-      name:  user.name,
+      id: user._id,
+      name: user.name,
       email: user.email,
-      role:  user.role,
+      role: user.role,
       profileImage: user.profileImage,
     });
   }
@@ -218,6 +284,5 @@ router.patch(
 //     }
 //   }
 // );
-
 
 export default router;
