@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 import { FiUser, FiMail, FiLock, FiSave, FiCheckCircle, FiEdit2, FiX, FiCamera } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { Spinner } from "../components/Spinner";
+import { getAssetUrl } from "../utils/getAssetUrl";
 
 interface MeResponse {
   id: string;
@@ -164,7 +165,7 @@ export default function ProfilePage() {
                       />
                     ) : user?.profileImage ? (
                       <img
-                        src={user.profileImage}
+                        src={getAssetUrl(user.profileImage)}
                         alt="Profile"
                         className="w-full h-full object-cover"
                       />
