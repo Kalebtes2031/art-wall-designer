@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import api from "../utils/api";
 import type { Product, Size } from "../types/Product";
+import { getAssetUrl } from "../utils/getAssetUrl";
 
 export interface ProductSidebarProps {
   selectedProduct: Product | null;
@@ -506,7 +507,8 @@ export default function ProductSidebar({
                         <div className="p-2 border-[3px] border-[rgb(107,68,35)] bg-white roundg">
 
                           <img
-                            src={p.transparentUrl || p.imageUrl}
+                          src={getAssetUrl(p.imageUrl ?? p.transparentUrl ?? "")}
+                            // src={p.transparentUrl || p.imageUrl}
                             alt={p.title}
                             className="object-contain w-full h-full"
                           />

@@ -14,6 +14,7 @@ import {
   FiArrowRight,
   FiExternalLink,
 } from "react-icons/fi";
+import { getAssetUrl } from "../utils/getAssetUrl";
 
 export default function CartFooter() {
   const {
@@ -196,7 +197,7 @@ export default function CartFooter() {
                           <div className="flex-shrink-0 w-20 h-20 bg-gray-200 rounded-lg overflow-hidden">
                             {item.product.imageUrl ? (
                               <img
-                                src={item.product.imageUrl}
+                                src={getAssetUrl(item.product.imageUrl)}
                                 alt={item.product.title}
                                 className="w-full h-full object-cover"
                               />

@@ -12,6 +12,7 @@ import {
   FiShoppingBag,
 } from "react-icons/fi";
 import { Spinner } from "../components/Spinner";
+import { getAssetUrl } from "../utils/getAssetUrl";
 
 export default function CartPage() {
   const { createOrder } = useOrderApi();
@@ -146,7 +147,7 @@ export default function CartPage() {
                     <div className="w-full sm:w-48 h-48 p-4 bg-white flex-shrink-0">
                       {item.product.imageUrl ? (
                         <img
-                          src={item.product.imageUrl}
+                          src={getAssetUrl(item.product.imageUrl)}
                           alt={item.product.title}
                           className="w-full h-full object-cover"
                         />

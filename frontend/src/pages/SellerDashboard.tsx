@@ -14,6 +14,7 @@ import {
   FiShoppingBag,
   FiImage,
 } from "react-icons/fi";
+import { getAssetUrl } from "../utils/getAssetUrl";
 
 interface Order {
   _id: string;
@@ -739,7 +740,7 @@ export default function SellerDashboard() {
                           {product.imageUrl ? (
                             <div className="aspect-w-16 aspect-h-12 bg-gray-200">
                               <img
-                                src={product.imageUrl}
+                                src={getAssetUrl(product.imageUrl)}
                                 alt={product.title}
                                 className="object-cover w-full h-48"
                               />

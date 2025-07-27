@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { FiUser } from 'react-icons/fi';
+import { getAssetUrl } from "../utils/getAssetUrl";
 
 
 export default function Navbar() {
@@ -98,7 +99,7 @@ export default function Navbar() {
                 <div className="flex items-center space-x-2">
                   {user?.profileImage ? (
                     <img
-                      src={user.profileImage}
+                      src={getAssetUrl(user.profileImage)}
                       alt="Profile"
                       className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
                     />
@@ -227,7 +228,7 @@ export default function Navbar() {
               <div className="flex items-center space-x-3">
                 {user?.profileImage ? (
                   <img
-                    src={user.profileImage}
+                    src={getAssetUrl(user.profileImage)}
                     alt="Profile"
                     className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
                   />
