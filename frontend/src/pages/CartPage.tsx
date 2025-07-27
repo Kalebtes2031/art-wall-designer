@@ -85,7 +85,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen">
+    <div className="bg-gradient-to-b from-gray-50 to-gray-100 pt-[65px] min-h-screen">
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="mb-8">
           <button
