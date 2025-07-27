@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import cors from 'cors';
 import productRoutes from './routes/products';
 import wallRoutes from './routes/wall';
 import path from 'path';
@@ -13,7 +14,10 @@ dotenv.config();
 
 
 const app = express();
-app.use(express.json());
+// app.use(express.json());
+app.use(cors({
+  origin: ['https://artwalldesigner.onrender.com', 'https://art-wall-designer.vercel.app/']
+}));
 
 
 // serve uploaded images
