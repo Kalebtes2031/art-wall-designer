@@ -20,7 +20,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen pt-[65px] max-w-7xl mx-auto p-6 space-y-6">
+    <div className="min-h-screen pt-[80px] max-w-7xl mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
