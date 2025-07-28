@@ -14,11 +14,11 @@ A web application that allows users to upload a photo of their wall and visualiz
 
 ## 🛠️ Tech Stack
 
-* **Frontend:** React, TypeScript, Tailwind CSS, React Konva
+* **Frontend:** React, TypeScript, Tailwind CSS, React Konva, React Router
+* **Authentication:** JWT, Google OAuth 2.0, role‑based access control (admin, seller, customer)
 * **Backend:** Node.js, Express.js, MongoDB (Atlas), Mongoose
-* **Authentication:** JWT, role‑based access control (admin, seller, customer)
 * **Storage:** Multer for image uploads
-* **Deployment:** Render both frontend and backend
+* **Deployment:** Render (frontend & backend)
 
 ---
 
@@ -31,6 +31,7 @@ A web application that allows users to upload a photo of their wall and visualiz
 * Resize, rotate, and frame previews
 * Save layout locally & sync with shopping cart
 * Checkout & order history
+* **Login / Signup with Google OAuth**
 
 ### Seller Dashboard
 
@@ -59,7 +60,7 @@ A web application that allows users to upload a photo of their wall and visualiz
    ```bash
    cd backend
    npm install
-   # Set MONGODB_URI, JWT_SECRET, PORT
+   # Set MONGODB_URI, JWT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, PORT
    npm run dev
    ```
 
@@ -68,7 +69,7 @@ A web application that allows users to upload a photo of their wall and visualiz
    ```bash
    cd ../frontend
    npm install
-   # Set VITE_API_BASE_URL to your backend URL
+   # Set VITE_API_BASE_URL, VITE_GOOGLE_CLIENT_ID
    npm run dev
    ```
 
@@ -86,6 +87,8 @@ A web application that allows users to upload a photo of their wall and visualiz
   ```ini
   MONGODB_URI=your_mongodb_atlas_connection_string
   JWT_SECRET=your_jwt_secret
+  GOOGLE_CLIENT_ID=your_google_oauth_client_id
+  GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
   PORT=5000
   ```
 
@@ -93,6 +96,7 @@ A web application that allows users to upload a photo of their wall and visualiz
 
   ```ini
   VITE_API_BASE_URL=http://localhost:5000/api
+  VITE_GOOGLE_CLIENT_ID=your_google_oauth_client_id
   ```
 
 ---
@@ -101,9 +105,11 @@ A web application that allows users to upload a photo of their wall and visualiz
 
 ### Auth
 
-* `POST /auth/signup`
-* `POST /auth/login`
+* `POST /auth/signup` (email/password)
+* `POST /auth/login` (email/password)
 * `GET  /auth/users` (admin only)
+* **`GET  /auth/google`** — Redirect to Google OAuth consent screen
+* **`GET  /auth/google/callback`** — OAuth callback endpoint
 
 ### Products
 
@@ -134,6 +140,7 @@ A web application that allows users to upload a photo of their wall and visualiz
 
 * Passwords hashed with bcrypt
 * JWT tokens with 1‑day expiry
+* **Google OAuth** for secure social login
 * Role‑based middleware for protected routes
 * Input validation and error handling
 
@@ -148,4 +155,3 @@ A web application that allows users to upload a photo of their wall and visualiz
 5. Open a pull request
 
 ---
-
