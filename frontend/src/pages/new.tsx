@@ -1,3 +1,8 @@
+
+// before i did these all the above improvements, by adding google OAuth login/signup and improved the UI/UX only then,  i have deployed the artwalldesigner project on render and have link for frontend: https://artwalldesigner.onrender.com/
+
+// so, before i go to the next i want to prepare a readme that is a professional one so, what do you say?
+
 // src/pages/SellerDashboard.tsx
 import React, { useEffect, useState, useCallback } from 'react';
 import api from '../utils/api';
