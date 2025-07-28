@@ -46,12 +46,12 @@ interface ScreenGuardProps {
   
     if (!ok) {
       return (
-        <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center">
+        <div className="w-full h-full pt-[65px] flex flex-col items-center justify-center p-4 text-center">
           <h2 className="text-2xl font-bold mb-2">
             Large Screen Required!
           </h2>
           <p className="text-gray-600 mb-4">
-            To open the Art Wall Designer, please enlarge your window
+            To open the Art Wall Designer, you need to use your computer, or enlarge your window
             {requireFullScreen && ' or enter full‑screen mode'}.
           </p>
           {requireFullScreen && (
