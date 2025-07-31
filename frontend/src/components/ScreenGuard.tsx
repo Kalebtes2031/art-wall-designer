@@ -46,7 +46,7 @@ interface ScreenGuardProps {
   
     if (!ok) {
       return (
-        <div className="w-full h-full pt-[65px] flex flex-col items-center justify-center p-4 text-center">
+        <div className="w-full h-screen flex flex-col items-center justify-center p-4 text-center">
           <h2 className="text-2xl font-bold mb-2">
             Large Screen Required!
           </h2>

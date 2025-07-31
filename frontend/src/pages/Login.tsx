@@ -118,7 +118,7 @@ export default function Login() {
   };
 
   return (
-    <div className="h-screen md:px-8 md:pt-[80px] flex items-center justify-center bg-gradient-to-br from-gray-900 to-indigo-900 p-4">
+    <div className="h-screen md:px-8 md:pt-[80px] flex items-center justify-center bg-gradient-to-br from-gray-900 to-indigo-900 p-10">
       <div className="w-full max-w-5xl flex flex-col lg:flex-row bg-white/5 backdrop-blur-lg rounded-2xl shadow-2xl overflow-hidden">
         {/* Left Panel - Branding */}
          <div className="hidden md:flex w-full md:w-1/2 bg-gradient-to-br from-indigo-900 to-purple-900 relative overflow-hidden">

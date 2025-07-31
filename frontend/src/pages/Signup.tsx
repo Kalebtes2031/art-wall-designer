@@ -71,7 +71,7 @@ export default function Signup() {
   }, []);
 
   return (
-    <div className="h-screen  flex items-center justify-center bg-gradient-to-br from-slate-900 to-indigo-900 p-4 md:px-8 md:pt-[80px]">
+    <div className="h-screen  flex items-center justify-center bg-gradient-to-br from-slate-900 to-indigo-900 p-10 md:px-8 md:pt-[80px]">
       <div className="w-full max-w-5xl flex flex-col md:flex-row bg-white rounded-2xl shadow-2xl overflow-hidden">
         {/* Left side - Branding and image */}
         <div className="hidden md:flex w-full md:w-1/2 bg-gradient-to-br from-indigo-900 to-purple-900 relative overflow-hidden">
