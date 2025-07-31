@@ -20,13 +20,13 @@ export default function App() {
       <Routes>
         <Route path="/" element={<MainLayout />}>
           <Route index element={
-            <ScreenGuard
-            minWidth={1000}
-            minHeight={720}
-              // requireFullScreen={true}
-            >
+            // <ScreenGuard
+            // minWidth={1000}
+            // minHeight={720}
+            //   // requireFullScreen={true}
+            // >
               <Designer />
-            </ScreenGuard>
+            // </ScreenGuard>
           } />
           <Route
             path="admin"
@@ -57,13 +57,13 @@ export default function App() {
           <Route path="login" element={<Login />} />
           <Route path="signup" element={<Signup />} />
           <Route path="*" element={
-            <ScreenGuard
-            minWidth={1000}
-            minHeight={720}
-            // requireFullScreen={true}
-          >
+          //   <ScreenGuard
+          //   minWidth={1000}
+          //   minHeight={720}
+          //   // requireFullScreen={true}
+          // >
             <Designer />
-          </ScreenGuard>
+          // </ScreenGuard>
           } />
         </Route>
       </Routes>

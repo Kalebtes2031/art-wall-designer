@@ -2,9 +2,8 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { FiUser } from 'react-icons/fi';
+import { FiUser } from "react-icons/fi";
 import { getAssetUrl } from "../utils/getAssetUrl";
-
 
 export default function Navbar() {
   const { token, user, logout } = useAuth();
@@ -28,10 +27,11 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`fixed inset-x-0 top-0 border-b-1 border-b-gray-300 z-50 transition-all duration-500 ${isScrolled
+      className={`fixed inset-x-0 top-0 border-b-1 border-b-gray-300 z-50 transition-all duration-500 ${
+        isScrolled
           ? "b-white/90 bg-[#D7D7D7]  backdrop-blur-md  py-2 h-[56px]"
           : "bg-gradient-to-tr from-[#001842] via-[#1c3c74] to-[#5E89B3] py-3 h-[65px]"
-        }`}
+      }`}
     >
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-full">
         {/* Logo */}
@@ -51,38 +51,40 @@ export default function Navbar() {
 
         {/* Desktop nav links */}
         <div className="hidden transition-all duration-300 md:flex items-center space-x-16">
-  {[
-    { to: "/", label: "Home", roles: [] },
-    { to: "/cart", label: "Cart", roles: ["customer"] },
-    { to: "/orders", label: "Order", roles: ["customer"] },
-    { to: "/admin", label: "Admin", roles: ["admin"] },
-    { to: "/seller", label: "Seller", roles: ["seller"] },
-  ]
-    .filter(({ roles }) => roles.length === 0 || (user?.role && roles.includes(user.role)))
-    .map(({ to, label }) => {
-      const isActive = location.pathname === to;
+          {[
+            { to: "/", label: "Home", roles: [] },
+            { to: "/cart", label: "Cart", roles: ["customer"] },
+            { to: "/orders", label: "Order", roles: ["customer"] },
+            { to: "/admin", label: "Admin", roles: ["admin"] },
+            { to: "/seller", label: "Seller", roles: ["seller"] },
+          ]
+            .filter(
+              ({ roles }) =>
+                roles.length === 0 || (user?.role && roles.includes(user.role))
+            )
+            .map(({ to, label }) => {
+              const isActive = location.pathname === to;
 
-      return (
-        <Link
-          key={to}
-          to={to}
-          className={`relative transition-all duration-300 transform ${
-            isActive
-              ? "text-white scale-105"
-              : "text-white/80 hover:text-white hover:scale-105"
-          }`}
-        >
-          <span className="inline-block">{label}</span>
-          <span
-            className={`absolute bottom-0 left-0 h-0.5 rounded-full bg-white transition-all duration-300 ${
-              isActive ? "w-full opacity-100" : "w-0 opacity-0"
-            }`}
-          />
-        </Link>
-      );
-    })}
-</div>
-
+              return (
+                <Link
+                  key={to}
+                  to={to}
+                  className={`relative transition-all duration-300 transform ${
+                    isActive
+                      ? "text-white scale-105"
+                      : "text-white/80 hover:text-white hover:scale-105"
+                  }`}
+                >
+                  <span className="inline-block">{label}</span>
+                  <span
+                    className={`absolute bottom-0 left-0 h-0.5 rounded-full bg-white transition-all duration-300 ${
+                      isActive ? "w-full opacity-100" : "w-0 opacity-0"
+                    }`}
+                  />
+                </Link>
+              );
+            })}
+        </div>
 
         {/* Auth buttons: Desktop */}
         <div className="hidden md:flex items-center space-x-4">
@@ -91,10 +93,11 @@ export default function Navbar() {
               {/* PROFILE LINK - NEW ADDITION */}
               <Link
                 to="/profile"
-                className={`relative group flex flex-col items-center px-3 py-1 rounded-lg transition-all ${location.pathname === "/profile"
+                className={`relative group flex flex-col items-center px-3 py-1 rounded-lg transition-all ${
+                  location.pathname === "/profile"
                     ? "bg-gradient-to-br from-blue-50 to-purple-50 ring-1 ring-blue-200"
                     : "hover:bg-gray-50"
-                  }`}
+                }`}
               >
                 <div className="flex items-center space-x-2">
                   {user?.profileImage ? (
@@ -111,7 +114,13 @@ export default function Navbar() {
                       <FiUser className="w-4 h-4 text-gray-500" />
                     </div>
                   )}
-                  <span className={`font-medium ${location.pathname === '/profile' ? "text-[#1c3c74]":"text-gray-100"} group-hover:text-[#1c3c74] transition-colors`}>
+                  <span
+                    className={`font-medium ${
+                      location.pathname === "/profile"
+                        ? "text-[#1c3c74]"
+                        : "text-gray-100"
+                    } group-hover:text-[#1c3c74] transition-colors`}
+                  >
                     {user?.name}
                   </span>
                 </div>
@@ -145,12 +154,34 @@ export default function Navbar() {
           className="md:hidden p-2 rounded-md text-gray-700 hover:text-blue-600 focus:outline-none"
         >
           {isMobileMenuOpen ? (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16m-7 6h7"
+              />
             </svg>
           )}
         </button>
@@ -158,26 +189,29 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       <div
-        className={`md:hidden bg-white shadow-lg rounded-b-xl transition-all duration-300 overflow-hidden ${isMobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-          }`}
+        className={`md:hidden absolute right-6 bg-white shadow-lg rounded-xl transition-all duration-300 w-1/2   overflow-hidden ${
+          isMobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+        }`}
       >
         <div className="px-2 pt-2 pb-3 space-y-1">
           <Link
             to="/"
-            className={`block px-3 py-2 rounded-md text-base font-medium ${location.pathname === "/"
+            className={`block px-3 py-2 rounded-md text-base font-medium ${
+              location.pathname === "/"
                 ? "bg-blue-50 text-blue-600"
                 : "text-gray-700 hover:bg-gray-50 hover:text-blue-600"
-              }`}
+            }`}
           >
             Home
           </Link>
           {user?.role === "customer" && (
             <Link
               to="/cart"
-              className={`block px-3 py-2 rounded-md text-base font-medium ${location.pathname === "/cart"
+              className={`block px-3 py-2 rounded-md text-base font-medium ${
+                location.pathname === "/cart"
                   ? "bg-blue-50 text-blue-600"
                   : "text-gray-700 hover:bg-gray-50 hover:text-blue-600"
-                }`}
+              }`}
             >
               Cart
             </Link>
@@ -185,10 +219,11 @@ export default function Navbar() {
           {user?.role === "customer" && (
             <Link
               to="/orders"
-              className={`block px-3 py-2 rounded-md text-base font-medium ${location.pathname === "/orders"
+              className={`block px-3 py-2 rounded-md text-base font-medium ${
+                location.pathname === "/orders"
                   ? "bg-blue-50 text-blue-600"
                   : "text-gray-700 hover:bg-gray-50 hover:text-blue-600"
-                }`}
+              }`}
             >
               Orders
             </Link>
@@ -196,10 +231,11 @@ export default function Navbar() {
           {user?.role === "admin" && (
             <Link
               to="/admin"
-              className={`block px-3 py-2 rounded-md text-base font-medium ${location.pathname === "/admin"
+              className={`block px-3 py-2 rounded-md text-base font-medium ${
+                location.pathname === "/admin"
                   ? "bg-blue-50 text-blue-600"
                   : "text-gray-700 hover:bg-gray-50 hover:text-blue-600"
-                }`}
+              }`}
             >
               Admin
             </Link>
@@ -207,10 +243,11 @@ export default function Navbar() {
           {user?.role === "seller" && (
             <Link
               to="/seller"
-              className={`block px-3 py-2 rounded-md text-base font-medium ${location.pathname === "/seller"
+              className={`block px-3 py-2 rounded-md text-base font-medium ${
+                location.pathname === "/seller"
                   ? "bg-blue-50 text-blue-600"
                   : "text-gray-700 hover:bg-gray-50 hover:text-blue-600"
-                }`}
+              }`}
             >
               Seller
             </Link>
@@ -220,10 +257,11 @@ export default function Navbar() {
           {token && (
             <Link
               to="/profile"
-              className={`block px-3 py-2 rounded-md text-base font-medium ${location.pathname === "/profile"
+              className={`block px-3 py-2 rounded-md text-base font-medium ${
+                location.pathname === "/profile"
                   ? "bg-gradient-to-r from-blue-50 to-purple-50 text-blue-600 border-l-4 border-blue-500"
                   : "text-gray-700 hover:bg-gray-50 hover:text-blue-600"
-                }`}
+              }`}
             >
               <div className="flex items-center space-x-3">
                 {user?.profileImage ? (
@@ -234,7 +272,7 @@ export default function Navbar() {
                   />
                 ) : (
                   <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8 flex items-center justify-center text-xs font-bold text-gray-500">
-                    {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                    {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
                   </div>
                 )}
                 <span>My Profile</span>
@@ -246,7 +284,7 @@ export default function Navbar() {
             {token ? (
               <button
                 onClick={logout}
-                className="w-full px-4 py-2 rounded-md bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium shadow"
+                className="w-full px-4 py-2 rounded-md bg-gradient-to-r from-[#001842] via-[#1c3c74] to-[#5E89B3] hover:from-[#5E89B3] hover:via-[#1c3c74] hover:to-[#001842]  text-white font-medium shadow"
               >
                 Logout
               </button>
@@ -254,13 +292,13 @@ export default function Navbar() {
               <>
                 <Link
                   to="/login"
-                  className="block w-full px-4 py-2 rounded-md bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium shadow mb-2"
+                  className="block w-full px-4 py-2 rounded-md bg-gradient-to-r from-[#001842] via-[#1c3c74] to-[#5E89B3] hover:from-[#5E89B3] hover:via-[#1c3c74] hover:to-[#001842]  text-white font-medium shadow mb-2"
                 >
                   Login
                 </Link>
                 <Link
                   to="/signup"
-                  className="block w-full px-4 py-2 rounded-md bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium shadow"
+                  className="block w-full px-4 py-2 rounded-md bg-gradient-to-r from-[#001842] via-[#1c3c74] to-[#5E89B3] hover:from-[#5E89B3] hover:via-[#1c3c74] hover:to-[#001842]  text-white font-medium shadow"
                 >
                   Sign Up
                 </Link>
