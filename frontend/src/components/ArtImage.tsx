@@ -1,4 +1,3 @@
-// components/ArtImage.tsx
 import React, { useEffect, useRef, useState } from "react";
 import { Group, Image as KonvaImage, Rect, Text } from "react-konva";
 import useImage from "use-image";
@@ -18,7 +17,7 @@ interface ArtImageProps {
   onSelect?: () => void;
   onDelete?: () => void;
   onEditSize?: () => void;
-  onMove?: (id: string, x: number, y: number) => void;
+  onMove?: (id: string, x: number, y: number, width?: number, height?: number) => void;
 }
 
 export default function ArtImage({
@@ -40,32 +39,31 @@ export default function ArtImage({
   const [image] = useImage(src);
   const groupRef = useRef<Konva.Group>(null);
   const deleteRef = useRef<Konva.Text>(null);
-  const editRef   = useRef<Konva.Text>(null);
+  const editRef = useRef<Konva.Text>(null);
 
   const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
 
-  // When the image loads, capture its natural size
+  // Capture natural image size when loaded
   useEffect(() => {
     if (image) {
       setNaturalSize({ width: image.width, height: image.height });
     }
   }, [image]);
 
-  // Dimensions we actually draw at
-  const displayWidth  = width  ?? naturalSize.width;
+  const displayWidth = width ?? naturalSize.width;
   const displayHeight = height ?? naturalSize.height;
 
-  // Helper to tween opacity + a quick pulse
-  function animateIcon(node: Konva.Text | null, toVisible: boolean) {
+  // Icon animation helper
+  const animateIcon = (node: Konva.Text | null, toVisible: boolean) => {
     if (!node) return;
     node.to({
       opacity: toVisible ? 1 : 0,
-      scaleX:  toVisible ? 1.2 : 1,
-      scaleY:  toVisible ? 1.2 : 1,
+      scaleX: toVisible ? 1.2 : 1,
+      scaleY: toVisible ? 1.2 : 1,
       duration: 0.2,
       easing: Konva.Easings.EaseInOut,
     });
-  }
+  };
 
   return (
     <Group
@@ -77,35 +75,53 @@ export default function ArtImage({
       scaleX={scaleX}
       scaleY={scaleY}
 
-      onDragEnd={e => {
-        if (id && onMove) onMove(id, e.target.x(), e.target.y());
+      // --- constrain drag ---
+      dragBoundFunc={(pos) => {
+        if (!isWall) {
+          const stage = groupRef.current?.getStage();
+          if (!stage) return pos;
+
+          const stageWidth = stage.width();
+          const stageHeight = stage.height();
+
+          const newX = Math.max(0, Math.min(pos.x, stageWidth - displayWidth));
+          const newY = Math.max(0, Math.min(pos.y, stageHeight - displayHeight));
+
+          return { x: newX, y: newY };
+        }
+        return pos;
+      }}
+
+      onDragEnd={(e) => {
+        if (!id || !onMove) return;
+        onMove(id, e.target.x(), e.target.y(), displayWidth, displayHeight);
       }}
 
       onMouseEnter={() => {
         animateIcon(deleteRef.current, true);
-        animateIcon(editRef.current,   true);
+        animateIcon(editRef.current, true);
       }}
       onMouseLeave={() => {
         animateIcon(deleteRef.current, false);
-        animateIcon(editRef.current,   false);
+        animateIcon(editRef.current, false);
       }}
 
-      onClick={e => {
+      onClick={(e) => {
         e.cancelBubble = true;
         onSelect?.();
         if (!isWall) onEditSize?.();
       }}
-      onTap={e => {
+      onTap={(e) => {
         e.cancelBubble = true;
         onSelect?.();
         if (!isWall) onEditSize?.();
       }}
     >
-
-      {/* --- your existing art frame --- */}
+      {/* --- Art frame --- */}
       {!isWall && image && (
         <Rect
-          x={-7.5} y={-7.5}
+          x={-7.5}
+          y={-7.5}
           width={displayWidth + 15}
           height={displayHeight + 15}
           fill="#fff"
@@ -119,10 +135,12 @@ export default function ArtImage({
         />
       )}
 
+      {/* --- Image --- */}
       <KonvaImage
         name={isWall ? "wall" : undefined}
         image={image}
-        x={0} y={0}
+        x={0}
+        y={0}
         width={displayWidth}
         height={displayHeight}
         shadowColor="rgba(0,0,0,0.3)"
@@ -133,7 +151,7 @@ export default function ArtImage({
         cornerRadius={isWall ? 0 : 5}
       />
 
-      {/* --- delete icon --- */}
+      {/* --- Delete Icon --- */}
       {!isWall && (
         <Text
           ref={deleteRef}
@@ -141,36 +159,25 @@ export default function ArtImage({
           fontSize={20}
           x={displayWidth + 15}
           y={displayHeight - 15}
-          opacity={0}           // start hidden
-          listening             // always catch events
-          hitStrokeWidth={10}   // bigger clickable area
-          onClick={e => {
+          opacity={0}
+          listening
+          hitStrokeWidth={10}
+          onClick={(e) => {
             e.cancelBubble = true;
             onDelete?.();
           }}
-          onMouseEnter={e => {
+          onMouseEnter={(e) => {
             const stage = e.target.getStage();
-            if (stage) {
-              const container = stage.container();
-              if (container) {
-                container.style.cursor = "pointer";
-              }
-            }
+            if (stage) stage.container().style.cursor = "pointer";
           }}
-          
-          onMouseLeave={e => {
+          onMouseLeave={(e) => {
             const stage = e.target.getStage();
-            if (stage) {
-              const container = stage.container();
-              if (container) {
-                container.style.cursor = "default";
-              }
-            }
+            if (stage) stage.container().style.cursor = "default";
           }}
         />
       )}
 
-      {/* --- edit-size icon --- */}
+      {/* --- Edit Icon --- */}
       {!isWall && (
         <Text
           ref={editRef}
@@ -181,22 +188,18 @@ export default function ArtImage({
           opacity={0}
           listening
           hitStrokeWidth={10}
-          onClick={e => {
+          onClick={(e) => {
             e.cancelBubble = true;
             onEditSize?.();
           }}
-          onMouseEnter={e => {
-               const stage = e.target.getStage();
-               if (stage) {
-                 stage.container().style.cursor = "pointer";
-               }
-             }}
-             onMouseLeave={e => {
-                 const stage = e.target.getStage();
-                 if (stage) {
-                   stage.container().style.cursor = "default";
-                 }
-               }}
+          onMouseEnter={(e) => {
+            const stage = e.target.getStage();
+            if (stage) stage.container().style.cursor = "pointer";
+          }}
+          onMouseLeave={(e) => {
+            const stage = e.target.getStage();
+            if (stage) stage.container().style.cursor = "default";
+          }}
         />
       )}
     </Group>

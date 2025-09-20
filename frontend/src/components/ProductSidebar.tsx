@@ -13,6 +13,7 @@ export interface ProductSidebarProps {
   editingProductId?: string;
   editingSizeIndex?: number;
   onEditSize?: (productId: string, newSizeIndex: number) => void;
+  onProductsLoaded?: (products: Product[]) => void;
 }
 
 type SortKey = "new" | "popular" | "bestseller" | "price_asc" | "price_desc";
@@ -26,6 +27,7 @@ export default function ProductSidebar({
   editingProductId,
   editingSizeIndex,
   onEditSize,
+  onProductsLoaded,
 }: ProductSidebarProps) {
   // filter & sort state
   const [q, setQ] = useState("");
@@ -51,16 +53,16 @@ export default function ProductSidebar({
 
   const [dimensions, setDimensions] = useState({
     height: window.innerHeight - 130,
-    cardheight: ((window.innerHeight - 130) / 2.2472),
+    cardheight: (window.innerHeight - 130) / 2.2472,
   });
   useEffect(() => {
     const updateDims = () =>
       setDimensions({
         height: window.innerHeight - 130,
-        cardheight: ((window.innerHeight - 130) / 2.2472),
+        cardheight: (window.innerHeight - 130) / 2.2472,
       });
-    console.log('window height: ', dimensions.height)
-    console.log('card height: ', dimensions.cardheight)
+    console.log("window height: ", dimensions.height);
+    console.log("card height: ", dimensions.cardheight);
     window.addEventListener("resize", updateDims);
     return () => window.removeEventListener("resize", updateDims);
   }, []);
@@ -103,6 +105,10 @@ export default function ProductSidebar({
       }>(`/products?${buildQS()}`);
       setProducts(data.products);
       setTotal(data.totalCount);
+      // 👇 Notify parent (Designer)
+      if (onProductsLoaded) {
+        onProductsLoaded(data.products);
+      }
     } catch {
       // handle error if you like
     } finally {
@@ -161,16 +167,18 @@ export default function ProductSidebar({
         <div className="flex space-x-2 mt-3">
           <button
             onClick={() => setOpenPanel(openPanel === "sort" ? null : "sort")}
-            className={`flex-1 py-2 rounded-lg flex items-center justify-center  ${openPanel === "sort"
-              ? "bg-[#1c3c74] text-white shadow-md"
-              : "bg-white border border-gray-200 hover:border-blue-300 text-gray-700 hover:shadow-sm"
-              }`}
+            className={`flex-1 py-2 rounded-lg flex items-center justify-center  ${
+              openPanel === "sort"
+                ? "bg-[#1c3c74] text-white shadow-md"
+                : "bg-white border border-gray-200 hover:border-blue-300 text-gray-700 hover:shadow-sm"
+            }`}
           >
             <span>Sort</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className={`ml-2 h-4 w-4 transition-transform ${openPanel === "sort" ? "rotate-180" : ""
-                }`}
+              className={`ml-2 h-4 w-4 transition-transform ${
+                openPanel === "sort" ? "rotate-180" : ""
+              }`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -187,16 +195,18 @@ export default function ProductSidebar({
             onClick={() =>
               setOpenPanel(openPanel === "filter" ? null : "filter")
             }
-            className={`flex-1 py-2 rounded-lg flex items-center justify-center transition-all ${openPanel === "filter"
-              ? "bg-[#1c3c74] text-white shadow-md"
-              : "bg-white border border-gray-200 hover:border-blue-300 text-gray-700 hover:shadow-sm"
-              }`}
+            className={`flex-1 py-2 rounded-lg flex items-center justify-center transition-all ${
+              openPanel === "filter"
+                ? "bg-[#1c3c74] text-white shadow-md"
+                : "bg-white border border-gray-200 hover:border-blue-300 text-gray-700 hover:shadow-sm"
+            }`}
           >
             <span>Filters</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className={`ml-2 h-4 w-4 transition-transform ${openPanel === "filter" ? "rotate-180" : ""
-                }`}
+              className={`ml-2 h-4 w-4 transition-transform ${
+                openPanel === "filter" ? "rotate-180" : ""
+              }`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -232,15 +242,17 @@ export default function ProductSidebar({
                     setOpenPanel(null);
                     setPage(1);
                   }}
-                  className={`p-2 rounded-lg cursor-pointer flex items-center transition-all ${sortBy === key
-                    ? "bg-blue-50 text-[#1c3c74] font-medium"
-                    : "hover:bg-gray-50 text-gray-600"
-                    }`}
+                  className={`p-2 rounded-lg cursor-pointer flex items-center transition-all ${
+                    sortBy === key
+                      ? "bg-blue-50 text-[#1c3c74] font-medium"
+                      : "hover:bg-gray-50 text-gray-600"
+                  }`}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className={`h-4 w-4 mr-2 ${sortBy === key ? "text-blue-500" : "opacity-0"
-                      }`}
+                    className={`h-4 w-4 mr-2 ${
+                      sortBy === key ? "text-blue-500" : "opacity-0"
+                    }`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -297,8 +309,9 @@ export default function ProductSidebar({
                       </span>
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className={`h-5 w-5 text-gray-400 transition-transform ${filterCategory === cat ? "rotate-180" : ""
-                          }`}
+                        className={`h-5 w-5 text-gray-400 transition-transform ${
+                          filterCategory === cat ? "rotate-180" : ""
+                        }`}
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -323,10 +336,11 @@ export default function ProductSidebar({
                                   setSizeFilter(sz === sizeFilter ? "" : sz);
                                   setPage(1);
                                 }}
-                                className={`p-2 rounded-lg text-sm transition-all ${sizeFilter === sz
-                                  ? "bg-blue-600 text-white font-medium shadow-sm"
-                                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                                  }`}
+                                className={`p-2 rounded-lg text-sm transition-all ${
+                                  sizeFilter === sz
+                                    ? "bg-blue-600 text-white font-medium shadow-sm"
+                                    : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                                }`}
                               >
                                 {sz} cm
                               </button>
@@ -343,10 +357,11 @@ export default function ProductSidebar({
                                   setOrientation(orientation === o ? "" : o);
                                   setPage(1);
                                 }}
-                                className={`p-2 rounded-lg text-sm transition-all flex items-center justify-center ${orientation === o
-                                  ? "bg-blue-600 text-white font-medium shadow-sm"
-                                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                                  }`}
+                                className={`p-2 rounded-lg text-sm transition-all flex items-center justify-center ${
+                                  orientation === o
+                                    ? "bg-blue-600 text-white font-medium shadow-sm"
+                                    : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                                }`}
                               >
                                 {o.charAt(0).toUpperCase() + o.slice(1)}
                               </button>
@@ -410,15 +425,17 @@ export default function ProductSidebar({
                                   setArtist(artist === a ? "" : a);
                                   setPage(1);
                                 }}
-                                className={`w-full text-left p-2 rounded-lg text-sm transition-all flex items-center ${artist === a
-                                  ? "bg-blue-100 text-blue-700 font-medium"
-                                  : "hover:bg-gray-100 text-gray-700"
-                                  }`}
+                                className={`w-full text-left p-2 rounded-lg text-sm transition-all flex items-center ${
+                                  artist === a
+                                    ? "bg-blue-100 text-blue-700 font-medium"
+                                    : "hover:bg-gray-100 text-gray-700"
+                                }`}
                               >
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
-                                  className={`h-4 w-4 mr-2 ${artist === a ? "text-blue-500" : "opacity-0"
-                                    }`}
+                                  className={`h-4 w-4 mr-2 ${
+                                    artist === a ? "text-blue-500" : "opacity-0"
+                                  }`}
                                   fill="none"
                                   viewBox="0 0 24 24"
                                   stroke="currentColor"
@@ -488,26 +505,32 @@ export default function ProductSidebar({
                 const innerClasses = isLandscape
                   ? "w-48 h-32" // wide
                   : isPortrait
-                    ? "w-32 h-48" // tall
-                    : "w-40 h-40"; // square
+                  ? "w-32 h-48" // tall
+                  : "w-40 h-40"; // square
                 return (
                   <div
                     key={p._id}
                     onClick={() => onSelect(p, p.sizes[0], 0)}
-                    className={`relative group flex flex-col justify-between  overflow-hidden transition-all hover: duration-300 transform hover:scale-102 shadow-sm hover:shadow-md bg-gradient-to-r from-gray-100 to-gray-400 ${isSelected
-                      ? "ring-2 ring-[#1c3c74] ring-inset"
-                      : "border border-gray-300 "
-                      }`}
+                    className={`relative group flex flex-col justify-between  overflow-hidden transition-all hover: duration-300 transform hover:scale-102 shadow-sm hover:shadow-md bg-gradient-to-r from-gray-100 to-gray-400 ${
+                      isSelected
+                        ? "ring-2 ring-[#1c3c74] ring-inset"
+                        : "border border-gray-300 "
+                    }`}
                     style={{ height: dimensions.cardheight }}
                   >
-                    <div className={`flex-1 flex items-center justify-center ${isLandscape ? "p-4" : isPortrait ? "p-2" : "p-6"}`}>
+                    <div
+                      className={`flex-1 flex items-center justify-center ${
+                        isLandscape ? "p-4" : isPortrait ? "p-2" : "p-6"
+                      }`}
+                    >
                       <div
                         className={`flex items-center justify-center  ${innerClasses}`}
                       >
                         <div className="p-2 border-[3px] border-[rgb(107,68,35)] bg-white roundg">
-
                           <img
-                          src={getAssetUrl(p.imageUrl ?? p.transparentUrl ?? "")}
+                            src={getAssetUrl(
+                              p.imageUrl ?? p.transparentUrl ?? ""
+                            )}
                             // src={p.transparentUrl || p.imageUrl}
                             alt={p.title}
                             className="object-contain w-full h-full"
@@ -538,10 +561,11 @@ export default function ProductSidebar({
                                   onSelect(p, p.sizes[0], idx);
                                 }
                               }}
-                              className={`px-2 py-1 text-xs rounded-full transition-all ${selectedSizeIndex === idx
-                                ? "bg-blue-600 text-white font-medium shadow-sm"
-                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                }`}
+                              className={`px-2 py-1 text-xs rounded-full transition-all ${
+                                selectedSizeIndex === idx
+                                  ? "bg-blue-600 text-white font-medium shadow-sm"
+                                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                              }`}
                             >
                               {sz.widthCm}×{sz.heightCm} cm
                             </button>
@@ -603,10 +627,11 @@ export default function ProductSidebar({
               <button
                 disabled={page === 1}
                 onClick={() => setPage((p) => p - 1)}
-                className={`px-4 py-2 rounded-lg flex items-center transition-all ${page === 1
-                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-blue-300"
-                  }`}
+                className={`px-4 py-2 rounded-lg flex items-center transition-all ${
+                  page === 1
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-blue-300"
+                }`}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -627,10 +652,11 @@ export default function ProductSidebar({
               <button
                 disabled={page * limit >= total}
                 onClick={() => setPage((p) => p + 1)}
-                className={`px-4 py-2 rounded-lg flex items-center transition-all ${page * limit >= total
-                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-blue-300"
-                  }`}
+                className={`px-4 py-2 rounded-lg flex items-center transition-all ${
+                  page * limit >= total
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-blue-300"
+                }`}
               >
                 Next
                 <svg

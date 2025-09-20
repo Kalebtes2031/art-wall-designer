@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Stage, Layer } from "react-konva";
 import useImage from "use-image";
 import ArtImage from "./ArtImage";
-import type { Artwork } from "../types/Artwork"; // Make sure this includes `itemId`
+import type { Artwork } from "../types/Artwork";
 
 interface CanvasAreaProps {
   wallUrl: string;
@@ -12,7 +12,13 @@ interface CanvasAreaProps {
   onDelete?: (placedId: string) => void;
   onEditSize?: (placedId: string) => void;
   onSelectArtwork?: (artworkId: string | null) => void;
-  onMove?: (id: string, x: number, y: number) => void;
+  onMove?: (
+    id: string,
+    x: number,
+    y: number,
+    width: number,
+    height: number
+  ) => void;
   onDeselectAll?: () => void;
 }
 
@@ -31,7 +37,6 @@ export default function CanvasArea({
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const leftMargin = 0;
 
   useEffect(() => {
     if (!wallImage) return;
@@ -45,7 +50,7 @@ export default function CanvasArea({
       newOffset.y = (height - wallImage.height * newScale) / 2;
     } else {
       newScale = height / wallImage.height;
-      newOffset.x = (width - wallImage.width * newScale) / 2 + leftMargin;
+      newOffset.x = (width - wallImage.width * newScale) / 2;
     }
 
     setScale(newScale);
@@ -59,15 +64,13 @@ export default function CanvasArea({
         height={height}
         className="w-full h-full overflow-hidden"
         onMouseDown={(e) => {
-          console.log("Clicked on:", e.target.name());
           const stage = e.target.getStage();
           const clickedOnEmpty =
             e.target === stage || e.target.hasName?.("wall");
-
           if (clickedOnEmpty) {
             setSelectedId(null);
             onSelectArtwork?.(null);
-            onDeselectAll?.(); // ✅ Close the modal
+            onDeselectAll?.();
           }
         }}
       >
@@ -83,6 +86,7 @@ export default function CanvasArea({
               onSelect={() => setSelectedId(null)}
             />
           )}
+
           {artworks.map((a) => (
             <ArtImage
               key={a.id}
@@ -100,7 +104,7 @@ export default function CanvasArea({
               }}
               onDelete={() => onDelete?.(a.id)}
               onEditSize={() => onEditSize?.(a.id)}
-              onMove={onMove}
+              onMove={(id, x, y, w, h) => onMove?.(id, x, y, w ?? 0, h ?? 0)}
             />
           ))}
         </Layer>
