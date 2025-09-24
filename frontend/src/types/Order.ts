@@ -1,5 +1,4 @@
-// src/types/Order.ts
-
+// src/types/Order.ts (updated)
 export interface OrderItem {
   product: {
     _id: string;
@@ -10,11 +9,11 @@ export interface OrderItem {
   priceAtOrder: number;
 }
 
-export type OrderStatus = 'pending' | 'paid' | 'shipped' | 'cancelled';
+export type OrderStatus = 'pending' | 'paid' | 'shipped' | 'cancelled' | 'completed';
 
 export interface Order {
   _id: string;
-  user: string;           // user ID
+  user: string;
   items: OrderItem[];
   total: number;
   status: OrderStatus;

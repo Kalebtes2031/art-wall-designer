@@ -1,27 +1,20 @@
+
 // src/types/Cart.ts
 
 import type { Product } from './Product';
 
-/**
- * A single item in the shopping cart.
- * - product: the full Product object
- * - quantity: how many units of that product
- * - sizeIndex: which size preset was chosen (index into product.sizes)
- */
 export interface CartItem {
   _id: string;        // ← new
   product: Product;
   quantity: number;
   sizeIndex: number;
+  positionX?: number; // normalized 0..1
+  positionY?: number;
+  scale?: number;
+  rotation?: number;
+  zIndex?: number;
 }
 
-
-/**
- * The shopping cart model.
- * - user: ID of the cart's owner
- * - items: list of CartItem entries
- * - updatedAt: timestamp of last update
- */
 export interface Cart {
   user: string;
   items: CartItem[];

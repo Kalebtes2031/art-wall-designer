@@ -13,6 +13,7 @@ interface CartContextType {
   refreshCart: () => Promise<void>;
   changeItemSize: (itemId: string, newSizeIndex: number) => Promise<void>;
   updateCartItemQuantity: (itemId: string, newQuantity: number) => Promise<void>;
+  clearCart: () => void;
 }
 
 const CartContext = createContext<CartContextType>({
@@ -26,6 +27,7 @@ const CartContext = createContext<CartContextType>({
   refreshCart: async () => {},
   changeItemSize: async () => {},
   updateCartItemQuantity: async () => {},
+  clearCart: async() => {}
 });
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -109,6 +111,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const clearCart = async () => {
+  setCart(null); // temporarily
+  // optionally clear backend or local storage
+};
+
   return (
     <CartContext.Provider
       value={{
@@ -120,6 +127,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         refreshCart: load,
         changeItemSize: changeItemSizeInCart,
         updateCartItemQuantity,
+        clearCart,
       }}
     >
       {children}

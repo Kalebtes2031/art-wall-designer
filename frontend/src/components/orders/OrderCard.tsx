@@ -4,7 +4,7 @@ import { FiCalendar, FiChevronDown, FiChevronUp, FiEdit3 } from 'react-icons/fi'
 import StatusBadge from './StatusBadge';
 import OrderItemsList from './OrderItemList';
 import StatusSelector from './StatusSelector';
-import type { Order } from '../../types/Order';
+import type { Order, OrderStatus } from '../../types/Order';
 import type { User } from '../../types/Auth';
 
 interface OrderCardProps {

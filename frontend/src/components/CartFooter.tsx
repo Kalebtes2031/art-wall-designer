@@ -13,8 +13,16 @@ import {
   FiTrash2,
   FiArrowRight,
   FiExternalLink,
+  FiUser,
+  FiLogIn, 
+  FiUserPlus, 
+  FiStar, 
+  FiCheck,
+  FiFacebook,
+  FiMail
 } from "react-icons/fi";
 import { getAssetUrl } from "../utils/getAssetUrl";
+import { useAuth } from "../context/AuthContext";
 
 export default function CartFooter() {
   const {
@@ -29,6 +37,8 @@ export default function CartFooter() {
   const [open, setOpen] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const navigate = useNavigate();
+  const {token} = useAuth();
+  const [authOpen, setAuthOpen] = useState(false);
 
   useEffect(() => {
     if (!cart) return;
@@ -98,6 +108,8 @@ export default function CartFooter() {
 
   return (
     <>
+    {token? (
+      <>
       {/* Floating cart button */}
       <motion.button
         onClick={() => setOpen(true)}
@@ -106,11 +118,11 @@ export default function CartFooter() {
         // whileTap={{ scale: 0.98 }}
       >
         {/* Total Price on Left */}
-        <div className="text-lg font-semibold">Total: ${total.toFixed(2)}</div>
+        <div className="text-lg text-gray-600 font-semibold">Total: ${total.toFixed(2)}</div>
 
         {/* Cart Icon with Badge on Right */}
         <div className="relative">
-          <FiShoppingCart className="h-6 w-6" />
+          <FiShoppingCart className="h-6 w-6 text-gray-600" />
           {itemCount > 0 && (
             <motion.span
               className="absolute -top-2 -right-2 bg-[#1c3c74] text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold"
@@ -122,7 +134,7 @@ export default function CartFooter() {
           )}
         </div>
 
-        <span className="sr-only">Open cart</span>
+        <span className="sr-only text-gray-600">Open cart</span>
       </motion.button>
 
       {/* Cart panel with backdrop */}
@@ -343,6 +355,172 @@ export default function CartFooter() {
           </>
         )}
       </AnimatePresence>
+      
+      </>
+    ): (
+      <>
+        {/* New Login/Signup Structure */}
+      <motion.div
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-[#001842] via-[#1c3c74] to-[#5E89B3] shadow-2xl"
+      >
+        {/* Main CTA Button */}
+        <motion.button
+          onClick={() => setAuthOpen(true)}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="w-full h-16 flex items-center justify-between px-8 text-white cursor-pointer"
+        >
+          <div className="flex items-center space-x-3">
+            <FiUser className="h-6 w-6 text-white" />
+            <div className="text-left">
+              <p className="font-semibold text-lg">Join Our Art Community</p>
+              <p className="text-sm text-blue-100">Sign in to save your favorites</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-2 bg-white/20 px-4 py-2 rounded-full">
+            <span className="font-medium">Get Started</span>
+            <FiArrowRight className="h-4 w-4" />
+          </div>
+        </motion.button>
+
+        {/* Auth Panel */}
+        <AnimatePresence>
+          {authOpen && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.6 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black z-40"
+                onClick={() => setAuthOpen(false)}
+              />
+
+              {/* Slide-up Panel */}
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-50 max-h-[60vh] overflow-hidden flex flex-col shadow-2xl"
+              >
+                {/* Handle bar */}
+                <div className="flex justify-center py-2">
+                  <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+                </div>
+
+                {/* Header */}
+                <div className="flex justify-between items-center px-6 pb-4 border-b">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-gradient-to-r from-[#001842] to-[#5E89B3] rounded-full">
+                      <FiUser className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-gray-900">Welcome</p>
+                      <p className="text-gray-600">Join our art community</p>
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={() => setAuthOpen(false)}
+                    className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  >
+                    <FiX className="h-5 w-5 text-gray-500" />
+                  </button>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto p-6">
+                  <div className="max-w-md mx-auto space-y-6">
+                    {/* Benefits */}
+                    <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                      <h3 className="font-semibold text-gray-900 mb-2 flex items-center">
+                        <FiStar className="h-4 w-4 text-yellow-500 mr-2" />
+                        Member Benefits
+                      </h3>
+                      <ul className="text-sm text-gray-600 space-y-1">
+                        <li className="flex items-center">
+                          <FiCheck className="h-3 w-3 text-green-500 mr-2" />
+                          Save your favorite artworks
+                        </li>
+                        <li className="flex items-center">
+                          <FiCheck className="h-3 w-3 text-green-500 mr-2" />
+                          Fast checkout experience
+                        </li>
+                        <li className="flex items-center">
+                          <FiCheck className="h-3 w-3 text-green-500 mr-2" />
+                          Track your orders
+                        </li>
+                        <li className="flex items-center">
+                          <FiCheck className="h-3 w-3 text-green-500 mr-2" />
+                          Exclusive member discounts
+                        </li>
+                      </ul>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="space-y-4">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => navigate('/login')}
+                        className="w-full bg-gradient-to-r from-[#001842] to-[#1c3c74] text-white py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 hover:shadow-lg flex items-center justify-center"
+                      >
+                        <FiLogIn className="h-5 w-5 mr-2" />
+                        Sign In to Account
+                      </motion.button>
+
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => navigate('/signup')}
+                        className="w-full bg-white border-2 border-[#1c3c74] text-[#1c3c74] py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 hover:bg-gray-50 flex items-center justify-center"
+                      >
+                        <FiUserPlus className="h-5 w-5 mr-2" />
+                        Create New Account
+                      </motion.button>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="relative flex items-center py-4">
+                      <div className="flex-grow border-t border-gray-300"></div>
+                      <span className="flex-shrink mx-4 text-gray-500 text-sm">or continue with</span>
+                      <div className="flex-grow border-t border-gray-300"></div>
+                    </div>
+
+                    {/* Social Login */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <button className="flex items-center justify-center space-x-2 border border-gray-300 rounded-xl py-3 px-4 hover:bg-gray-50 transition-colors">
+                        <FiFacebook className="h-5 w-5 text-blue-600" />
+                        <span className="text-sm font-medium">Facebook</span>
+                      </button>
+                      <button className="flex items-center justify-center space-x-2 border border-gray-300 rounded-xl py-3 px-4 hover:bg-gray-50 transition-colors">
+                        <FiMail className="h-5 w-5 text-red-500" />
+                        <span className="text-sm font-medium">Google</span>
+                      </button>
+                    </div>
+
+                    {/* Footer Text */}
+                    <p className="text-center text-xs text-gray-500">
+                      By continuing, you agree to our{" "}
+                      <a href="#" className="text-[#1c3c74] hover:underline">Terms of Service</a>{" "}
+                      and{" "}
+                      <a href="#" className="text-[#1c3c74] hover:underline">Privacy Policy</a>
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    
+      </>
+    )}
     </>
   );
 }

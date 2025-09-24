@@ -1,25 +1,20 @@
+//src/context/AuthContext.tsx
+// src/context/AuthContext.tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  profileImage?: string;
-}
+import type { User as AuthUser } from '../types/Auth'; // <-- import the correct User type
 
 interface AuthContextType {
   token: string | null;
-  user:  User  | null;
-  login: (token: string, user: User) => void;
+  user: AuthUser | null;
+  login: (token: string, user: AuthUser) => void;
   logout: () => void;
-  updateUser: (user: User) => void; // add method to update user profile
+  updateUser: (user: AuthUser) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
   token: null,
-  user:  null,
+  user: null,
   login: () => {},
   logout: () => {},
   updateUser: () => {},
@@ -27,13 +22,13 @@ const AuthContext = createContext<AuthContextType>({
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
-  const [user,  setUser ] = useState<User  | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const savedToken = localStorage.getItem('token');
-    const savedUser  = localStorage.getItem('user');
+    const savedUser = localStorage.getItem('user');
     if (savedToken && savedUser) {
       setToken(savedToken);
       setUser(JSON.parse(savedUser));
@@ -41,7 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(false);
   }, []);
 
-  const login = (tok: string, u: User) => {
+  const login = (tok: string, u: AuthUser) => {
     setToken(tok);
     setUser(u);
     localStorage.setItem('token', tok);
@@ -56,7 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     navigate('/login');
   };
 
-  const updateUser = (u: User) => {
+  const updateUser = (u: AuthUser) => {
     setUser(u);
     localStorage.setItem('user', JSON.stringify(u));
   };
