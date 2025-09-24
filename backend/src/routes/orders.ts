@@ -4,6 +4,10 @@ import Order from '../models/Order';
 import Cart from '../models/Cart';
 import { requireAuth } from '../middleware/auth';
 import { Types } from 'mongoose';
+import Stripe from 'stripe';
+
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-08-27.basil' });
 
 const router = express.Router();
 
@@ -49,27 +53,6 @@ router.post('/:id/pay', requireAuth('customer'), async (req: any, res) => {
   res.json({ status: 'success' });
 });
 
-// List orders
-// router.get('/', requireAuth(), async (req: any, res) => {
-//   const { role, id } = req.user;
-//   let orders;
-//   if (role === 'admin') {
-//     orders = await Order.find()
-//     .populate('items.product')
-//     .lean<{ items: { product: any; quantity: number; priceAtOrder: number; sizeIndex: number }[] }>();
-//   } else if (role === 'seller') {
-//     const all = await Order.find().populate('items.product');
-//     orders = all.filter(o =>
-//       o.items.some(i => {
-//         const p: any = i.product;
-//         return p.seller.equals(id);
-//       })
-//     );
-//   } else {
-//     orders = await Order.find({ user: id }).populate('items.product');
-//   }
-//   res.json(orders);
-// });
 // backend/src/routes/orders.ts
 router.get('/', requireAuth(), async (req: any, res) => {
   const { role, id } = req.user;
@@ -122,6 +105,40 @@ router.patch('/:id', requireAuth('admin','seller'), async (req: any, res) => {
     await order.save();
   }
   res.json(order);
+});
+
+// Create PaymentIntent
+router.post('/:id/create-payment-intent', requireAuth('customer'), async (req: any, res) => {
+  const { id } = req.params;
+  const order = await Order.findById(id);
+  if (!order || !order.user.equals(req.user.id)) {
+    return res.status(404).json({ error: 'Order not found' });
+  }
+
+  try {
+    let paymentIntent;
+    
+    // Retry scenario: if PaymentIntent already exists, retrieve it
+    if (order.stripePaymentIntentId) {
+      paymentIntent = await stripe.paymentIntents.retrieve(order.stripePaymentIntentId);
+    } else {
+      paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(order.total * 100), // cents
+        currency: 'usd',
+        metadata: { orderId: (order._id as Types.ObjectId).toString() },
+        automatic_payment_methods: { enabled: true },
+      });
+
+      // Save PaymentIntent ID in order
+      order.stripePaymentIntentId = paymentIntent.id;
+      await order.save();
+    }
+
+    res.json({ clientSecret: paymentIntent.client_secret });
+  } catch (err: any) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 export default router;

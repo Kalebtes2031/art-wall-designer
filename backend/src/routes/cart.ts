@@ -50,11 +50,18 @@ router.post("/items", requireAuth("customer"), async (req: any, res) => {
   );
 
   // Always push a new, individual item
-  cart.items.push({
-    product: new Types.ObjectId(productId),
-    quantity: 1,
-    sizeIndex,
-  });
+  // inside router.post("/items")
+cart.items.push({
+  product: new Types.ObjectId(productId),
+  quantity: 1,
+  sizeIndex,
+  positionX: req.body.positionX || 0,
+  positionY: req.body.positionY || 0,
+  scale: req.body.scale || 1,
+  rotation: req.body.rotation || 0,
+  zIndex: req.body.zIndex || 0,
+});
+
 
   await cart.save();
   await cart.populate("items.product");
@@ -171,5 +178,39 @@ router.delete(
   }
 );
 
+// backend/src/routes/cart.ts
+
+// Update placement (position, scale, rotation, zIndex)
+router.patch(
+  "/items/:itemId/placement",
+  requireAuth("customer"),
+  async (req: any, res) => {
+    const userId = req.user.id;
+    const { itemId } = req.params;
+    const { positionX, positionY, scale, rotation, zIndex } = req.body;
+
+    if (!Types.ObjectId.isValid(itemId)) {
+      return res.status(400).json({ error: "Invalid item ID" });
+    }
+
+    const cart = await Cart.findOne({ user: userId });
+    if (!cart) return res.status(404).json({ error: "Cart not found" });
+
+    const item = cart.items.find(i => i._id?.toString() === itemId);
+    if (!item) return res.status(404).json({ error: "Item not found in cart" });
+
+    // Only update fields if provided
+    if (typeof positionX === "number") item.positionX = positionX;
+    if (typeof positionY === "number") item.positionY = positionY;
+    if (typeof scale === "number") item.scale = scale;
+    if (typeof rotation === "number") item.rotation = rotation;
+    if (typeof zIndex === "number") item.zIndex = zIndex;
+
+    await cart.save();
+    await cart.populate("items.product");
+
+    res.json(cart);
+  }
+);
 
 export default router;
