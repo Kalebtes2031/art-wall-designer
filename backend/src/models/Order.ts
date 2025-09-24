@@ -13,6 +13,7 @@ export interface OrderDocument extends Document {
   items: (OrderItem & { _id?: mongoose.Types.ObjectId })[];
   total: number;                       // sum(quantity * priceAtOrder)
   status: 'pending' | 'paid' | 'shipped' | 'cancelled';
+  stripePaymentIntentId?: string | null; 
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,6 +30,8 @@ const OrderSchema = new Schema<OrderDocument>({
   items:  { type: [OrderItemSchema], required: true },
   total:  { type: Number, required: true, min: 0 },
   status: { type: String, enum: ['pending','paid','shipped','cancelled'], default: 'pending' },
+  stripePaymentIntentId: { type: String, default: null },
+
 }, {
   timestamps: true
 });
