@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+dotenv.config();
 import cors from 'cors';
 import productRoutes from './routes/products';
 import wallRoutes from './routes/wall';
@@ -9,8 +10,8 @@ import authRoutes from './routes/auth';
 import adminRoutes from './routes/admins'; 
 import cartRoutes    from './routes/cart';
 import orderRoutes   from './routes/orders';    
+import webhookRouter from './routes/webhook';
 
-dotenv.config();
 
 
 const app = express();
@@ -18,6 +19,8 @@ app.use(cors({
   origin: ['https://artwalldesigner.onrender.com', 'https://art-wall-designer.vercel.app'],
   credentials: true,
 }));
+
+app.use('/webhook', webhookRouter);
 
 app.use(express.json());
 
