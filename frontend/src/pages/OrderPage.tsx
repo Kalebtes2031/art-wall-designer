@@ -9,7 +9,7 @@ import OrdersHeader from '../components/orders/OrdersHeader';
 import EmptyOrders from '../components/orders/EmptyOrders';
 import OrderFilters from '../components/orders/OrderFilters';
 import type { Order, OrderStatus } from '../types/Order';
-// import type { User } from '../types/Auth';
+import type { User } from '../types/Auth';
 
 export default function OrdersPage() {
   const { listOrders, updateStatus } = useOrderApi();

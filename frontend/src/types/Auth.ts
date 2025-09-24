@@ -1,9 +1,9 @@
 // src/types/Auth.ts (create this if it doesn't exist)
 export interface User {
-  _id: string;
+  id: string;
   name: string;
   email: string;
-  role: 'customer' | 'admin' | 'seller';
+  role: string;
   profileImage?: string;
 }
 
