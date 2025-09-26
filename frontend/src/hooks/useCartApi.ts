@@ -48,9 +48,25 @@ const changeItemQuantity = useCallback(
   []
 );
 
+const updateItemPlacement = useCallback(
+  async (
+    itemId: string,
+    updates: {
+      positionX?: number;
+      positionY?: number;
+      scale?: number;
+      rotation?: number;
+      zIndex?: number;
+    }
+  ) => {
+    const res = await api.patch<Cart>(`/cart/items/${itemId}/placement`, updates);
+    return res.data;
+  },
+  []
+);
 
   // Decrement (remove) one unit is same as delete
   const decrementItem = removeItem;
 
-  return { fetchCart, setItem, removeItem, decrementItem, changeItemSize, changeItemQuantity };
+  return { fetchCart, setItem, removeItem, decrementItem, changeItemSize, changeItemQuantity, updateItemPlacement };
 }

@@ -5,6 +5,7 @@ import Konva from "konva";
 
 interface ArtImageProps {
   id?: string;
+  itemId?: string | null;
   src: string;
   x: number;
   y: number;

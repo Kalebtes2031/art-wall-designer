@@ -27,7 +27,7 @@ router.post(
         const intent = event.data.object as Stripe.PaymentIntent;
         const orderId = intent.metadata.orderId;
         const order = await Order.findById(orderId);
-        if (order) {
+        if (order && order.status !== 'paid') {
           order.status = 'paid';
           await order.save();
 

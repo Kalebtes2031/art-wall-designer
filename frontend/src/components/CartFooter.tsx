@@ -244,7 +244,7 @@ export default function CartFooter() {
                           </div>
 
                           <div className="flex items-center space-x-2 ml-2">
-                            <div className="flex items-center border border-gray-300 rounded-lg">
+                            {/* <div className="flex items-center border border-gray-300 rounded-lg">
                               <button
                                 onClick={() =>
                                   changeQty(item._id, item.quantity, "dec")
@@ -271,11 +271,11 @@ export default function CartFooter() {
                               >
                                 <FiPlus className="h-4 w-4" />
                               </button>
-                            </div>
+                            </div> */}
 
                             <button
                               onClick={() => onRemove(item._id)}
-                              className="p-2 text-red-500 hover:bg-red-50 rounded-full"
+                              className="p-2 text-red-500 hover:bg-red-100 px-6 py-3 rounded-full"
                               title="Remove item"
                             >
                               <FiTrash2 className="h-5 w-5" />

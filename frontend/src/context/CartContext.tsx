@@ -13,6 +13,16 @@ interface CartContextType {
   refreshCart: () => Promise<void>;
   changeItemSize: (itemId: string, newSizeIndex: number) => Promise<void>;
   updateCartItemQuantity: (itemId: string, newQuantity: number) => Promise<void>;
+  updateItemPlacement: (
+    itemId: string,
+    updates: {
+      positionX?: number;
+      positionY?: number;
+      scale?: number;
+      rotation?: number;
+      zIndex?: number;
+    }
+  ) => Promise<void>;
   clearCart: () => void;
 }
 
@@ -27,11 +37,12 @@ const CartContext = createContext<CartContextType>({
   refreshCart: async () => {},
   changeItemSize: async () => {},
   updateCartItemQuantity: async () => {},
+  updateItemPlacement: async () => {},
   clearCart: async() => {}
 });
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { fetchCart, setItem, removeItem, decrementItem, changeItemSize, changeItemQuantity } =
+  const { fetchCart, setItem, removeItem, decrementItem, changeItemSize, changeItemQuantity, updateItemPlacement } =
     useCartApi();
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -111,6 +122,25 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateItemPlacementInCart = async (
+  itemId: string,
+  updates: {
+    positionX?: number;
+    positionY?: number;
+    scale?: number;
+    rotation?: number;
+    zIndex?: number;
+  }
+) => {
+  if (!token) return;
+  try {
+    const updated = await updateItemPlacement(itemId, updates);
+    setCart(updated);
+  } catch (err) {
+    console.error("Update item placement failed:", err);
+  }
+};
+
   const clearCart = async () => {
   setCart(null); // temporarily
   // optionally clear backend or local storage
@@ -127,6 +157,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         refreshCart: load,
         changeItemSize: changeItemSizeInCart,
         updateCartItemQuantity,
+        updateItemPlacement: updateItemPlacementInCart,
         clearCart,
       }}
     >

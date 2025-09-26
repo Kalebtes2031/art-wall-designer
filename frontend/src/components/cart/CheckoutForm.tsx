@@ -46,18 +46,8 @@ export default function CheckoutForm({ total, orderId }: Props) {
       if (result.paymentIntent?.status === "succeeded") {
         toast.success("Payment successful! 🎉");
 
-        // 3️⃣ Mark order as paid in backend
-        try {
-          await api.post(`/orders/${orderId}/pay`);
-        } catch (err: any) {
-          console.warn("Failed to update order status:", err.response?.data?.error || err.message);
-        }
-
-        // 4️⃣ Clear placed items & cart
-        clearCart();    // clears cart and backend/local
-      clearPlaced();  // clears canvas and localStorage
-
-      // ✅ 3. Redirect to orders or confirmation page
+        clearCart();  
+      clearPlaced();  
       navigate("/orders");
       }
     } catch (err: any) {

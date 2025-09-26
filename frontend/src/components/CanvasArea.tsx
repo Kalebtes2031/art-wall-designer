@@ -1,3 +1,4 @@
+//src/components/CanvasArea.tsx
 import React, { useEffect, useState } from "react";
 import { Stage, Layer } from "react-konva";
 import useImage from "use-image";
@@ -89,14 +90,14 @@ export default function CanvasArea({
 
           {artworks.map((a) => (
             <ArtImage
-              key={a.id}
-              id={a.id}
+              key={a.id} // stable React key
+              id={a.id} // frontend id
+              itemId={a.itemId} // backend id
               src={a.src}
               x={a.x}
               y={a.y}
               width={a.width}
               height={a.height}
-              isWall={false}
               isSelected={selectedId === a.id}
               onSelect={() => {
                 setSelectedId(a.id);

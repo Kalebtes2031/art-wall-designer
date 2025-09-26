@@ -25,7 +25,7 @@ export default function DesignerPage() {
 // --- Internal Designer (wrapped by provider) ---
 function Designer() {
   const { token, user } = useAuth();
-  const { cart, addToCart, removeFromCart, changeItemSize } = useCart();
+  const { cart, addToCart, removeFromCart, changeItemSize, updateItemPlacement } = useCart();
   const {
     placed,
     addItem,
@@ -34,7 +34,6 @@ function Designer() {
     editItemSize,
     syncWithCart,
     mergeGuestItems,
-    
   } = usePlacedItems();
 
   const [wallUrl, setWallUrl] = useState("/wall2.jpeg");
@@ -53,7 +52,6 @@ function Designer() {
 
   const canvasRef = useRef<HTMLDivElement>(null);
 
-
   // --- Update dimensions on resize ---
   useEffect(() => {
     const updateDims = () =>
@@ -66,56 +64,55 @@ function Designer() {
   }, []);
 
   // --- Sync backend cart when user logs in ---
- 
- const [canvasReady, setCanvasReady] = useState(false);
 
-// detect canvas render
-useEffect(() => {
-  const checkCanvas = () => {
-    if (!canvasRef.current) return false;
-    return canvasRef.current.clientWidth > 0 && canvasRef.current.clientHeight > 0;
-  };
+  const [canvasReady, setCanvasReady] = useState(false);
 
-  if (checkCanvas()) {
-    setCanvasReady(true);
-  } else {
-    const timer = setInterval(() => {
-      if (checkCanvas()) {
-        setCanvasReady(true);
-        clearInterval(timer);
-      }
-    }, 50);
+  // detect canvas render
+  useEffect(() => {
+    const checkCanvas = () => {
+      if (!canvasRef.current) return false;
+      return (
+        canvasRef.current.clientWidth > 0 && canvasRef.current.clientHeight > 0
+      );
+    };
 
-    return () => clearInterval(timer);
-  }
-}, []);
+    if (checkCanvas()) {
+      setCanvasReady(true);
+    } else {
+      const timer = setInterval(() => {
+        if (checkCanvas()) {
+          setCanvasReady(true);
+          clearInterval(timer);
+        }
+      }, 50);
 
+      return () => clearInterval(timer);
+    }
+  }, []);
 
-useEffect(() => {
-  if (!token || !user || mergedGuest || !canvasReady || !cart) return;
+  useEffect(() => {
+    if (!token || !user || mergedGuest || !canvasReady || !cart) return;
 
-  const { clientWidth: width, clientHeight: height } = canvasRef.current!;
-  if (width <= 0 || height <= 0) return;
+    const { clientWidth: width, clientHeight: height } = canvasRef.current!;
+    if (width <= 0 || height <= 0) return;
 
-  // sync backend cart to canvas
-  syncWithCart(cart, { width, height });
+    // sync backend cart to canvas
+    syncWithCart(cart, { width, height });
 
-  // merge guest items if any
-  mergeGuestItems(addToCart, { width, height });
+    // merge guest items if any
+    mergeGuestItems(addToCart, { width, height });
 
-  setMergedGuest(true);
-}, [
-  token,
-  user,
-  cart,
-  mergedGuest,
-  syncWithCart,
-  mergeGuestItems,
-  addToCart,
-  canvasReady,
-]);
-
-
+    setMergedGuest(true);
+  }, [
+    token,
+    user,
+    cart,
+    mergedGuest,
+    syncWithCart,
+    mergeGuestItems,
+    addToCart,
+    canvasReady,
+  ]);
 
   const selectedArtwork = placed.find((p) => p.id === editingId) || null;
 
@@ -185,9 +182,17 @@ useEffect(() => {
             width={dimensions.width}
             height={dimensions.height}
             onMove={(id, x, y, w, h) =>
-  moveItem(id, x, y, w, h, dimensions.width, dimensions.height, token ? changeItemSize : undefined)
-}
-
+              moveItem(
+                id,
+                x,
+                y,
+                w,
+                h,
+                dimensions.width,
+                dimensions.height,
+                token ? updateItemPlacement : undefined
+              )
+            }
             onDelete={(id) => {
               deleteItem(id, token ? removeFromCart : undefined);
               setShowSizeModal(false);
@@ -238,4 +243,3 @@ useEffect(() => {
     </div>
   );
 }
-
