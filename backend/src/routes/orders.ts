@@ -79,6 +79,7 @@ router.get('/', requireAuth(), async (req: any, res) => {
     orders = await Order.find({ user: id })
       .populate('user','name email')
       .populate('items.product')
+      .sort({ createdAt: -1 })
       .lean();
   }
 

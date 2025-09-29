@@ -100,14 +100,14 @@ export default function CheckoutForm({ total, orderId }: Props) {
           <CardCvcElement options={{ style: inputStyles }} />
         </div>
 
-        <label className="block text-gray-700 font-medium">Postal / ZIP</label>
+        {/* <label className="block text-gray-700 font-medium">Postal / ZIP</label>
         <div className={inputClass}>
           <input
             type="text"
             placeholder="12345"
             className="w-full bg- focus:outline-none"
           />
-        </div>
+        </div> */}
       </div>
 
       <button
