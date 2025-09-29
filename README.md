@@ -19,6 +19,7 @@ A web application that allows users to upload a photo of their wall and visualiz
 * **Backend:** Node.js, Express.js, MongoDB (Atlas), Mongoose
 * **Storage:** Multer for image uploads
 * **Deployment:** Render (frontend & backend)
+* **Payments:** Stripe (PaymentIntent + Webhooks)
 
 ---
 
@@ -44,6 +45,12 @@ A web application that allows users to upload a photo of their wall and visualiz
 * Manage all users, products, and orders
 * Role‑based access control
 
+### Payments (new)
+
+* Instant capture via Stripe PaymentIntent (client confirms payment)
+* Webhook-driven order status updates — Stripe is the source of truth
+* Payment attempts recorded in Payment collection (success / failed)
+
 ---
 
 ## ⚙️ Local Setup
@@ -60,7 +67,7 @@ A web application that allows users to upload a photo of their wall and visualiz
    ```bash
    cd backend
    npm install
-   # Set MONGODB_URI, JWT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, PORT
+   # Set MONGODB_URI, JWT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, PORT, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
    npm run dev
    ```
 
@@ -69,7 +76,7 @@ A web application that allows users to upload a photo of their wall and visualiz
    ```bash
    cd ../frontend
    npm install
-   # Set VITE_API_BASE_URL, VITE_GOOGLE_CLIENT_ID
+   # Set VITE_API_BASE_URL, VITE_GOOGLE_CLIENT_ID, VITE_STRIPE_PUBLISHABLE_KEY
    npm run dev
    ```
 
@@ -90,6 +97,8 @@ A web application that allows users to upload a photo of their wall and visualiz
   GOOGLE_CLIENT_ID=your_google_oauth_client_id
   GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
   PORT=5000
+  STRIPE_SECRET_KEY=sk_test_...
+  STRIPE_WEBHOOK_SECRET=whsec_test_...
   ```
 
 * **Frontend .env.local**
@@ -97,6 +106,7 @@ A web application that allows users to upload a photo of their wall and visualiz
   ```ini
   VITE_API_BASE_URL=http://localhost:5000/api
   VITE_GOOGLE_CLIENT_ID=your_google_oauth_client_id
+  VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
   ```
 
 ---
@@ -130,9 +140,10 @@ A web application that allows users to upload a photo of their wall and visualiz
 ### Orders
 
 * `POST   /orders` (create)
-* `POST   /orders/:id/pay`
+* `POST   /orders/:id/create-payment-intent` create / return PaymentIntent (clientSecret)
 * `GET    /orders` (role‑aware)
 * `PATCH  /orders/:id` (admin or seller)
+* `POST   /webhook/stripe` Webhook - Stripe posts events here (payment_intent.succeeded, payment_intent.payment_failed)
 
 ---
 
@@ -143,6 +154,25 @@ A web application that allows users to upload a photo of their wall and visualiz
 * **Google OAuth** for secure social login
 * Role‑based middleware for protected routes
 * Input validation and error handling
+* Always verify webhook signatures with stripe.webhooks.constructEvent using STRIPE_WEBHOOK_SECRET.
+* Never trust the frontend to set payment state.
+* Keep live and test keys separate and never expose secret keys in the frontend.
+* Log webhook events and payment attempts for audit and troubleshooting.
+
+---
+## 📦 Deployment Notes (Render)
+
+* Add environment variables in Render for production:
+
+   * STRIPE_SECRET_KEY=sk_live_xxx
+
+   * STRIPE_WEBHOOK_SECRET=whsec_live_xxx
+
+   * VITE_STRIPE_PUBLISHABLE_KEY=pk_live_xxx (frontend)
+
+* Ensure your webhook endpoint is publicly accessible and uses HTTPS (Render provides TLS).
+
+* If you change domain or redeploy, update the webhook URL in Stripe and copy the new webhook signing secret.
 
 ---
 
