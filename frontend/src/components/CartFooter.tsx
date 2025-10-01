@@ -23,6 +23,7 @@ import {
 } from "react-icons/fi";
 import { getAssetUrl } from "../utils/getAssetUrl";
 import { useAuth } from "../context/AuthContext";
+import { usePlacedItems } from "../context/PlacedItemsProvider";
 
 export default function CartFooter() {
   const {
@@ -39,6 +40,7 @@ export default function CartFooter() {
   const navigate = useNavigate();
   const {token} = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
+  const { placed, deleteItem, deleteItemUniversal } = usePlacedItems();
 
   useEffect(() => {
     if (!cart) return;
@@ -81,15 +83,19 @@ export default function CartFooter() {
     navigate("/cart");
   };
 
-  const onRemove = async (itemId: string) => {
-    try {
-      await removeFromCart(itemId);
-      toast.success("Item removed from cart");
-      await refreshCart();
-    } catch {
-      toast.error("Failed to remove item");
-    }
-  };
+  const handleRemove = async (itemId: string) => {
+  try {
+    const placedItem = placed.find(p => p.itemId === itemId);
+    const deleteIdentifier = placedItem?.id ?? itemId;
+
+    await deleteItemUniversal(deleteIdentifier, removeFromCart);
+  } catch (err) {
+    console.error("Failed to remove item:", err);
+  }
+};
+
+
+
 
   const onCheckout = async () => {
     setCheckoutLoading(true);
@@ -244,37 +250,9 @@ export default function CartFooter() {
                           </div>
 
                           <div className="flex items-center space-x-2 ml-2">
-                            {/* <div className="flex items-center border border-gray-300 rounded-lg">
-                              <button
-                                onClick={() =>
-                                  changeQty(item._id, item.quantity, "dec")
-                                }
-                                disabled={item.quantity <= 1}
-                                className={`p-2 ${
-                                  item.quantity <= 1
-                                    ? "text-gray-300"
-                                    : "text-gray-600 hover:bg-gray-100"
-                                }`}
-                              >
-                                <FiMinus className="h-4 w-4" />
-                              </button>
-
-                              <span className="px-2 text-sm font-medium min-w-[24px] text-center">
-                                {item.quantity}
-                              </span>
-
-                              <button
-                                onClick={() =>
-                                  changeQty(item._id, item.quantity, "inc")
-                                }
-                                className="p-2 text-gray-600 hover:bg-gray-100"
-                              >
-                                <FiPlus className="h-4 w-4" />
-                              </button>
-                            </div> */}
-
+                           
                             <button
-                              onClick={() => onRemove(item._id)}
+                              onClick={() => handleRemove(item._id)}
                               className="p-2 text-red-500 hover:bg-red-100 px-6 py-3 rounded-full"
                               title="Remove item"
                             >
@@ -296,7 +274,7 @@ export default function CartFooter() {
                     </span>
                   </div>
 
-                  <button
+                  {/*<button
                     onClick={onCheckout}
                     disabled={ checkoutLoading || itemCount === 0}
                     className={`w-full py-3 px-4 rounded-xl font-bold text-white transition-all duration-300 flex items-center justify-center ${
@@ -336,7 +314,7 @@ export default function CartFooter() {
                       </span>
                     )}
                   </button>
-
+                    */}
                   <button
                     onClick={goToCartPage}
                     disabled={itemCount === 0}

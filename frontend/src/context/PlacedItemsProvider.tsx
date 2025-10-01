@@ -72,6 +72,11 @@ interface PlacedItemsContextValue {
   ) => void;
   setProductsRef: (products: Product[]) => void;
   clearPlaced: () => void;
+  deleteItemByItemId: (itemId: string, backendDelete?: any) => void;
+  deleteItemUniversal : (
+  identifier: string,        // can be either local id or backend itemId
+  backendDelete?: any
+) => void;
 }
 
 const PlacedItemsContext = createContext<PlacedItemsContextValue | undefined>(
@@ -217,6 +222,46 @@ const deleteItem = (id: string, backendDelete?: any) => {
     );
   }
 };
+
+// inside PlacedItemsProvider
+
+const deleteItemUniversal = async (
+  identifier: string,       // can be frontend id, backend itemId, or itemIdTemp
+  backendDelete?: (id: string) => Promise<any>
+) => {
+  // Find the target item in placed
+  const target = latestRef.current.find(
+    (p) => p.id === identifier || p.itemId === identifier || p.itemIdTemp === identifier
+  );
+
+  if (!target) return;
+
+  // 1️⃣ Remove from state
+  setPlaced((prev) => prev.filter((p) => p.id !== target.id));
+
+  // 2️⃣ Remove from localStorage
+  try {
+    const saved: PlacedItem[] = JSON.parse(localStorage.getItem("placedPositions") || "[]");
+    const updated = saved.filter((p) => p.id !== target.id);
+    localStorage.setItem("placedPositions", JSON.stringify(updated));
+  } catch (err) {
+    console.error("Failed localStorage cleanup:", err);
+  }
+
+  // 3️⃣ Remove from backend if logged in
+  if (backendDelete && target.itemId) {
+    try {
+      await backendDelete(target.itemId);
+    } catch (err) {
+      console.error("Backend delete failed:", err);
+    }
+  }
+};
+
+
+
+
+
 
 const editItemSize = async (
   id: string,
@@ -410,6 +455,12 @@ const mergeGuestItems = useCallback(
     setPlaced([]);
     localStorage.removeItem("placedPositions"); // optional, also clear saved positions
   };
+
+  const deleteItemByItemId = (itemId: string, backendDelete?: any) => {
+  setPlaced(prev => prev.filter(p => p.itemId !== itemId));
+  if (backendDelete) backendDelete(itemId);
+};
+
   return (
     <PlacedItemsContext.Provider
       value={{
@@ -423,6 +474,8 @@ const mergeGuestItems = useCallback(
         setProductsRef,
         restoreFromLocalStorage,
         clearPlaced,
+        deleteItemByItemId,
+        deleteItemUniversal,
       }}
     >
       {children}

@@ -34,6 +34,7 @@ function Designer() {
     editItemSize,
     syncWithCart,
     mergeGuestItems,
+    deleteItemUniversal,
   } = usePlacedItems();
 
   const [wallUrl, setWallUrl] = useState("/wall2.jpeg");
@@ -193,11 +194,12 @@ function Designer() {
                 token ? updateItemPlacement : undefined
               )
             }
-            onDelete={(id) => {
-              deleteItem(id, token ? removeFromCart : undefined);
-              setShowSizeModal(false);
-              setEditingId(null);
-            }}
+             onDelete={async (id) => {
+    // id here is always frontend id
+    await deleteItemUniversal(id, token ? removeFromCart : undefined);
+    setShowSizeModal(false);
+    setEditingId(null);
+  }}
             onEditSize={(id) => {
               setEditingId(id);
               setShowSizeModal(true);

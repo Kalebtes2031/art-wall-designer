@@ -12,7 +12,7 @@ import api from "../utils/api";
 
 export default function CartPage() {
   const { cart, loading, updateCartItemQuantity, removeFromCart, refreshCart } = useCart();
-  const { placed, deleteItem } = usePlacedItems();
+  const { placed, deleteItem, deleteItemUniversal } = usePlacedItems();
   const [isRemoving, setIsRemoving] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -33,7 +33,7 @@ export default function CartPage() {
   };
   
 
-  const onRemove = async (itemId: string) => {
+ const onRemove = async (itemId: string) => {
     setIsRemoving(itemId);
     try {
       await removeFromCart(itemId);
@@ -47,6 +47,9 @@ export default function CartPage() {
       setIsRemoving(null);
     }
   };
+
+
+
 
   if (loading) return <Spinner />;
   if (!cart || cart.items.length === 0) {
