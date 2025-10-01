@@ -72,9 +72,9 @@ export default function Signup() {
 
   return (
     <div className="h-screen  flex items-center justify-center bg-gradient-to-br from-slate-900 to-indigo-900 p-10 md:px-8 md:pt-[80px]">
-      <div className="w-full max-w-5xl flex flex-col md:flex-row bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-5xl flex flex-col md:flex-row  bg-white/5 backdrop-blur-lg rounded-2xl shadow-2xl overflow-hidden">
         {/* Left side - Branding and image */}
-        <div className="hidden md:flex w-full md:w-1/2 bg-gradient-to-br from-indigo-900 to-purple-900 relative overflow-hidden">
+        <div className="hidden md:flex w-full md:w-1/2   relative overflow-hidden">
           {/* <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1598300054756-e11c48c07ef5?auto=format&fit=crop&w=800&q=80')] bg-cover bg-center mix-blend-overlay opacity-40"></div> */}
 
           <div className="relative z-10 p-12 w-full flex flex-col justify-center items-center">
@@ -123,7 +123,7 @@ export default function Signup() {
         </div>
 
         {/* Right side - Signup form */}
-        <div className="w-full md:w-1/2 p-8 md:p-6">
+        <div className="w-full md:w-1/2 p-8 md:p-6 bg-white">
           <div className="text-center mb-5">
             <div className="mx-auto w-12 h-12 bg-gradient-to-r from-gray-500 to-gray-200 rounded-full flex items-center justify-center shadow-lg mb-4">
               <svg

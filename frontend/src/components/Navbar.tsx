@@ -139,7 +139,7 @@ export default function Navbar() {
           ) : (
             <>
               <Link to="/login" className={authBtnClasses}>
-                Login
+                Sign in
               </Link>
               <Link to="/signup" className={authBtnClasses}>
                 Sign Up
@@ -294,7 +294,7 @@ export default function Navbar() {
                   to="/login"
                   className="block w-full px-4 py-2 rounded-md bg-gradient-to-r from-[#001842] via-[#1c3c74] to-[#5E89B3] hover:from-[#5E89B3] hover:via-[#1c3c74] hover:to-[#001842]  text-white font-medium shadow mb-2"
                 >
-                  Login
+                  Sign in
                 </Link>
                 <Link
                   to="/signup"

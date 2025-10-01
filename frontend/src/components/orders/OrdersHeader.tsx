@@ -1,6 +1,7 @@
 // src/components/orders/OrdersHeader.tsx
 import React from 'react';
 import { FiRefreshCw, FiPackage } from 'react-icons/fi';
+import { IoReorderFourSharp } from "react-icons/io5";
 
 interface OrdersHeaderProps {
   stats: {
@@ -18,7 +19,7 @@ const OrdersHeader: React.FC<OrdersHeaderProps> = ({ stats, onRefresh, loading }
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
         <div className="flex items-center space-x-3">
           <div className="bg-indigo-100 p-3 rounded-2xl">
-            <FiPackage className="text-indigo-600 text-2xl" />
+            <IoReorderFourSharp className="text-gray-600 text-2xl" />
           </div>
           <div className="text-left">
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Your Art Collection</h1>

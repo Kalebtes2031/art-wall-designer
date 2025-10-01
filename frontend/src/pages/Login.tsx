@@ -121,26 +121,12 @@ export default function Login() {
     <div className="h-screen md:px-8 md:pt-[80px] flex items-center justify-center bg-gradient-to-br from-gray-900 to-indigo-900 p-10">
       <div className="w-full max-w-5xl flex flex-col lg:flex-row bg-white/5 backdrop-blur-lg rounded-2xl shadow-2xl overflow-hidden">
         {/* Left Panel - Branding */}
-         <div className="hidden md:flex w-full md:w-1/2 bg-gradient-to-br from-indigo-900 to-purple-900 relative overflow-hidden">
+         <div className="hidden md:flex w-full md:w-1/2 bg-white relative overflow-hidden">
           {/* <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1598300054756-e11c48c07ef5?auto=format&fit=crop&w=800&q=80')] bg-cover bg-center mix-blend-overlay opacity-40"></div> */}
 
           <div className="relative z-10 p-12 w-full flex flex-col justify-center items-center">
             <div className="flex flex-col items-center justify-center">
-              <div className="w-24 h-24 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center mb-8">
-                {/* <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 16l4-4 4 4m0 0l4-4 4 4m-4-4V4m0 0H8m4 0v4"
-                  />
-                </svg> */}
+              <div className="w-24 h-24 rounded-lg bg-[#1c3c74] backdrop-blur-sm flex items-center justify-center mb-8"> 
                 <div>
                   <img 
                     src="/artlogo.jpg"
@@ -148,10 +134,10 @@ export default function Login() {
                   />
                 </div>
               </div>
-              <h1 className="text-4xl text-start font-extrabold text-white mb-4">
+              <h1 className="text-4xl text-gray-600 text-start font-extrabold text-secondary mb-4">
                 Design Your Wall
               </h1>
-              <p className="text-indigo-100 text-lg max-w-md">
+              <p className="text-gray-600 text-lg max-w-md">
                 Bring your space to life. Drag, drop, and shop stunning artworks
                 on your wall in real-time. A seamless design experience,
                 tailored to your taste.
