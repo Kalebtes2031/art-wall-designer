@@ -226,20 +226,17 @@ const deleteItem = (id: string, backendDelete?: any) => {
 // inside PlacedItemsProvider
 
 const deleteItemUniversal = async (
-  identifier: string,       // can be frontend id, backend itemId, or itemIdTemp
+  identifier: string,       // frontend id (always unique)
   backendDelete?: (id: string) => Promise<any>
 ) => {
-  // Find the target item in placed
-  const target = latestRef.current.find(
-    (p) => p.id === identifier || p.itemId === identifier || p.itemIdTemp === identifier
-  );
-
+  // 1️⃣ Find the target by frontend id only
+  const target = latestRef.current.find((p) => p.id === identifier);
   if (!target) return;
 
-  // 1️⃣ Remove from state
+  // 2️⃣ Remove from state
   setPlaced((prev) => prev.filter((p) => p.id !== target.id));
 
-  // 2️⃣ Remove from localStorage
+  // 3️⃣ Remove from localStorage
   try {
     const saved: PlacedItem[] = JSON.parse(localStorage.getItem("placedPositions") || "[]");
     const updated = saved.filter((p) => p.id !== target.id);
@@ -248,7 +245,7 @@ const deleteItemUniversal = async (
     console.error("Failed localStorage cleanup:", err);
   }
 
-  // 3️⃣ Remove from backend if logged in
+  // 4️⃣ Remove from backend if this item has a saved itemId
   if (backendDelete && target.itemId) {
     try {
       await backendDelete(target.itemId);
@@ -257,9 +254,6 @@ const deleteItemUniversal = async (
     }
   }
 };
-
-
-
 
 
 
