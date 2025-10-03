@@ -318,10 +318,11 @@ export default function CartFooter() {
                   <button
                     onClick={goToCartPage}
                     disabled={itemCount === 0}
-                    className={`w-full py-3 px-4 text-[#1c3c74] rounded-xl font-bold transition-colors flex items-center justify-center  ${
+                    className={`w-full py-3 px-4 text-white rounded-xl font-bold  transition-all duration-300 flex items-center justify-center  ${
                       itemCount === 0
                         ? "text-[#1c3c74] cursor-not-allowed"
-                        : "bg-gradient-to-r hover:from-[#001842] hover:via-[#1c3c74] hover:to-[#5E89B3] hover:text-white border border-[#1c3c74]  "
+                        // : "bg-gradient-to-r hover:from-[#001842] hover:via-[#1c3c74] hover:to-[#5E89B3] hover:text-white border border-[#1c3c74]  "
+                        : "bg-gradient-to-r from-[#001842] border via-[#1c3c74] to-[#5E89B3] hover:from-gray-50 hover:via-gray-100 hover:to-gray-100 hover:text-[#1c3c74] border-[#1c3c74] cursor-pointer"
                     }`}
                   >
                     <FiExternalLink className="mr-2 h-5 w-5" />

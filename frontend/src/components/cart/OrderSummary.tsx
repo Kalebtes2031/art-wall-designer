@@ -30,7 +30,7 @@ export default function OrderSummary({ total, loading, cartItems }: Props) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-8">
+    <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-8 border border-gray-100">
       <h2 className="text-xl font-bold text-gray-900 border-b pb-4 mb-4">
         Order Summary
       </h2>
@@ -42,14 +42,14 @@ export default function OrderSummary({ total, loading, cartItems }: Props) {
         </div>
         <div className="flex justify-between text-gray-600">
           <span>Shipping</span>
-          <span className="font-medium">Free</span>
+          <span className="font-medium text-green-600">Free</span>
         </div>
         <div className="flex justify-between text-gray-600">
           <span>Tax</span>
           <span className="font-medium">Calculated at checkout</span>
         </div>
         <div className="border-t border-gray-200 pt-4 mt-4">
-          <div className="flex justify-between font-bold text-lg text-gray-500">
+          <div className="flex justify-between font-bold text-lg text-gray-900">
             <span>Total</span>
             <span>${total.toFixed(2)}</span>
           </div>
@@ -58,29 +58,19 @@ export default function OrderSummary({ total, loading, cartItems }: Props) {
 
       {!showCheckout ? (
         <button
-          onClick={navigateToCheckout} // ✅ call our function
+          onClick={navigateToCheckout}
           disabled={loading || cartItems.length === 0}
           className={`mt-8 w-full py-3 px-4 rounded-xl font-bold text-white transition-all duration-300 ${
             loading || cartItems.length === 0
               ? "bg-gray-400 cursor-not-allowed"
-              : "bg-gradient-to-r from-[#001842] via-[#1c3c74] to-[#5E89B3] hover:from-[#5E89B3] hover:via-[#1c3c74] hover:to-[#001842] shadow-lg"
+              : "bg-gradient-to-r from-[#001842] via-[#1c3c74] to-[#5E89B3] hover:from-[#5E89B3] hover:via-[#1c3c74] hover:to-[#001842] shadow-lg hover:shadow-xl transform hover:scale-3d cursor-pointer"
           }`}
         >
-          Proceed to Checkout
+          {loading ? "Processing..." : "Proceed to Checkout"}
         </button>
       ) : (
-        // ✅ Render CheckoutForm only when orderId exists
         orderId && <CheckoutForm total={total} orderId={orderId} />
       )}
-
-      <div className="mt-6 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
-        <h3 className="font-semibold text-[#1c3c74] mb-2">
-          Secure Checkout
-        </h3>
-        <p className="text-xs text-[#5E89B3]">
-          Your payment information is encrypted and securely processed.
-        </p>
-      </div>
     </div>
   );
 }
