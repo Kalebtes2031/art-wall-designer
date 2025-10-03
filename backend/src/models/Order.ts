@@ -4,36 +4,35 @@ import mongoose, { Schema, Document } from 'mongoose';
 interface OrderItem {
   product: mongoose.Types.ObjectId;
   quantity: number;
-  priceAtOrder: number;    // snapshot of the price when ordered
+  priceAtOrder: number;
   sizeIndex: number;
 }
 
 export interface OrderDocument extends Document {
-  user: mongoose.Types.ObjectId;       // who ordered
+  user: mongoose.Types.ObjectId;
   items: (OrderItem & { _id?: mongoose.Types.ObjectId })[];
-  total: number;                       // sum(quantity * priceAtOrder)
+  total: number;
   status: 'pending' | 'paid' | 'shipped' | 'cancelled';
-  stripePaymentIntentId?: string | null; 
+  stripePaymentIntentId?: string | null;
+  billingDetails?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
 
 const OrderItemSchema = new Schema<OrderItem>({
-  product:      { type: Schema.Types.ObjectId, ref: 'Product', required: true },
-  quantity:     { type: Number, required: true, min: 1 },
+  product: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
+  quantity: { type: Number, required: true, min: 1 },
   priceAtOrder: { type: Number, required: true, min: 0 },
-  sizeIndex:    { type: Number, required: true }, 
+  sizeIndex: { type: Number, required: true },
 }, { _id: false });
 
 const OrderSchema = new Schema<OrderDocument>({
-  user:   { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  items:  { type: [OrderItemSchema], required: true },
-  total:  { type: Number, required: true, min: 0 },
+  user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  items: { type: [OrderItemSchema], required: true },
+  total: { type: Number, required: true, min: 0 },
   status: { type: String, enum: ['pending','paid','shipped','cancelled'], default: 'pending' },
   stripePaymentIntentId: { type: String, default: null },
-
-}, {
-  timestamps: true
-});
+  billingDetails: { type: Schema.Types.ObjectId, ref: 'BillingDetails' },
+}, { timestamps: true });
 
 export default mongoose.model<OrderDocument>('Order', OrderSchema);
