@@ -31,7 +31,7 @@ router.post('/', requireAuth('customer'), async (req: any, res) => {
   });
   const total = items.reduce((sum, i) => sum + i.quantity * i.priceAtOrder, 0);
 
-  const order = await Order.create({ user: userId, items, total, status: 'pending' });
+  const order = await Order.create({ user: userId, items, total, status: 'paid' });
 
   // clear cart
   cart.items = [];
