@@ -15,17 +15,25 @@ import {
   FiImage,
 } from "react-icons/fi";
 import { getAssetUrl } from "../utils/getAssetUrl";
+import { motion } from "framer-motion";
 
 interface Order {
   _id: string;
   total: number;
   status: string;
   createdAt: string;
+  user: {
+    name: string;
+    email: string;
+  };
   items: {
     product: {
       title: string;
+      imageUrl?: string;
+      transparentUrl?: string;
     };
     quantity: number;
+    priceAtOrder: number;
   }[];
 }
 
@@ -62,6 +70,19 @@ export default function SellerDashboard() {
   } | null>(null);
   const [editFile, setEditFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
+  
+      const toggleExpanded = (orderId: string) => {
+      setExpandedOrders((prev) => {
+        const next = new Set(prev);
+        if (next.has(orderId)) {
+          next.delete(orderId);
+        } else {
+          next.add(orderId);
+        }
+        return next;
+      });
+    };
 
   // Fetch orders
   useEffect(() => {
@@ -275,11 +296,11 @@ export default function SellerDashboard() {
   return (
     <div className="min-h-screen pt-[65px] bg-gradient-to-r from-gray-50 to-gray-100">
     <div className="max-w-7xl mx-auto px-4  sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Seller Dashboard</h1>
         <p className="mt-2 text-gray-600">
           Welcome back,{" "}
-          <span className="font-semibold text-indigo-600">{user?.name}</span>.
+          <span className="font-semibold text-[#1c3c74]">{user?.name}</span>.
           Manage your products and track orders.
         </p>
       </div>
@@ -291,7 +312,7 @@ export default function SellerDashboard() {
             onClick={() => setActiveTab("products")}
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
               activeTab === "products"
-                ? "border-indigo-500 text-indigo-600"
+                ? "border-[#1c3c74] text-[#1c3c74]"
                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
             }`}
           >
@@ -302,7 +323,7 @@ export default function SellerDashboard() {
             onClick={() => setActiveTab("orders")}
             className={`py-4 px-1 border-b-2 font-medium text-sm ${
               activeTab === "orders"
-                ? "border-indigo-500 text-indigo-600"
+                ? "border-[#1c3c74] text-[#1c3c74]"
                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
             }`}
           >
@@ -315,203 +336,6 @@ export default function SellerDashboard() {
       {/* Products Tab */}
       {activeTab === "products" && (
         <div className="space-y-8">
-          <section className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="px-6 py-5 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-gray-900">
-                Add New Product
-              </h2>
-            </div>
-            <form
-              onSubmit={submitProduct}
-              className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6"
-            >
-              {/* title */}
-              <div>
-                <label
-                  htmlFor="title"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Title
-                </label>
-                <input
-                  type="text"
-                  id="title"
-                  placeholder="Product title"
-                  value={form.title}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, title: e.target.value }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                  required
-                />
-              </div>
-              {/* price */}
-              <div>
-                <label
-                  htmlFor="price"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Price ($)
-                </label>
-                <div className="relative mt-1 rounded-md shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiDollarSign className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="number"
-                    id="price"
-                    placeholder="0.00"
-                    value={form.price}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, price: e.target.value }))
-                    }
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                    required
-                    step="0.01"
-                    min="0"
-                  />
-                </div>
-              </div>
-              {/* Description */}
-              <div className="md:col-span-2">
-                <label
-                  htmlFor="description"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Description
-                </label>
-                <textarea
-                  id="description"
-                  rows={3}
-                  placeholder="Product description"
-                  value={form.description}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, description: e.target.value }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                />
-              </div>
-
-              {/* orientation   */}
-              <div>
-            <label className="block text-sm font-medium mb-1">
-              Orientation
-            </label>
-            <select
-              value={form.orientation}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  orientation: e.target.value as "portrait" | "landscape",
-                }))
-              }
-              className="w-full border rounded px-3 py-2"
-            >
-              <option value="portrait">Portrait</option>
-              <option value="landscape">Landscape</option>
-            </select>
-          </div>
-
-              {/* sizes */}
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Sizes (cm)
-                </label>
-                <div className="space-y-2">
-                  {form.sizes.map((s, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        placeholder="Width"
-                        value={s.widthCm}
-                        onChange={(e) =>
-                          updateSize(idx, "widthCm", Number(e.target.value))
-                        }
-                        required
-                        min={1}
-                        className="w-1/3 border rounded px-2 py-1"
-                      />
-                      <span className="text-gray-600">×</span>
-                      <input
-                        type="number"
-                        placeholder="Height"
-                        value={s.heightCm}
-                        onChange={(e) =>
-                          updateSize(idx, "heightCm", Number(e.target.value))
-                        }
-                        required
-                        min={1}
-                        className="w-1/3 border rounded px-2 py-1"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeSizeRow(idx)}
-                        className="p-1 text-red-500"
-                      >
-                        <FiTrash2 />
-                      </button>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={addSizeRow}
-                    className="inline-flex items-center px-3 py-1 bg-green-500 text-white rounded"
-                  >
-                    <FiPlus className="mr-1" /> Add Size
-                  </button>
-                </div>
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Product Image
-                </label>
-                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                  <div className="space-y-1 text-center">
-                    <FiImage className="mx-auto h-12 w-12 text-gray-400" />
-                    <div className="flex text-sm text-gray-600">
-                      <label
-                        htmlFor="file-upload"
-                        className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none"
-                      >
-                        <span>Upload a file</span>
-                        <input
-                          id="file-upload"
-                          name="file-upload"
-                          type="file"
-                          className="sr-only"
-                          onChange={(e) => setFile(e.target.files?.[0] || null)}
-                          required
-                          accept="image/*"
-                        />
-                      </label>
-                      <p className="pl-1">or drag and drop</p>
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      PNG, JPG, GIF up to 10MB
-                    </p>
-                    {file && (
-                      <p className="text-sm text-gray-900 truncate">
-                        {file.name}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="md:col-span-2 flex justify-end">
-                <button
-                  type="submit"
-                  disabled={creating}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-[#001842] via-[#1c3c74] to-[#5E89B3] hover:from-[#5E89B3] hover:via-[#1c3c74] hover:to-[#001842] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                >
-                  <FiPlus className="-ml-1 mr-2 h-5 w-5" />
-                  {creating ? "Creating..." : "Create Product"}
-                </button>
-              </div>
-            </form>
-          </section>
-
           <section className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="px-6 py-5 border-b border-gray-200">
               <h2 className="text-lg font-medium text-gray-900">
@@ -799,6 +623,205 @@ export default function SellerDashboard() {
               </div>
             )}
           </section>
+          
+          <section className="bg-white rounded-xl shadow-sm border border-gray-200 text-gray-600 overflow-hidden">
+            <div className="px-6 py-5 border-b border-gray-200">
+              <h2 className="text-lg font-medium text-gray-900">
+                Add New Product
+              </h2>
+            </div>
+            <form
+              onSubmit={submitProduct}
+              className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
+              {/* title */}
+              <div>
+                <label
+                  htmlFor="title"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Title
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  placeholder="Product title"
+                  value={form.title}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, title: e.target.value }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  required
+                />
+              </div>
+              {/* price */}
+              <div>
+                <label
+                  htmlFor="price"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Price ($)
+                </label>
+                <div className="relative mt-1 rounded-md shadow-sm">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiDollarSign className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="number"
+                    id="price"
+                    placeholder="0.00"
+                    value={form.price}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, price: e.target.value }))
+                    }
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    required
+                    step="0.01"
+                    min="0"
+                  />
+                </div>
+              </div>
+              {/* Description */}
+              <div className="md:col-span-2">
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Description
+                </label>
+                <textarea
+                  id="description"
+                  rows={3}
+                  placeholder="Product description"
+                  value={form.description}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, description: e.target.value }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+
+              {/* orientation   */}
+              <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Orientation
+            </label>
+            <select
+              value={form.orientation}
+              onChange={(e) =>
+                setForm((f) => ({
+                  ...f,
+                  orientation: e.target.value as "portrait" | "landscape",
+                }))
+              }
+              className="w-full border border-gray-300  shadow-sm text-gray-700 rounded px-3 py-2"
+            >
+              <option value="portrait">Portrait</option>
+              <option value="landscape">Landscape</option>
+            </select>
+          </div>
+
+              {/* sizes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Sizes (cm)
+                </label>
+                <div className="space-y-2">
+                  {form.sizes.map((s, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        placeholder="Width"
+                        value={s.widthCm}
+                        onChange={(e) =>
+                          updateSize(idx, "widthCm", Number(e.target.value))
+                        }
+                        required
+                        min={1}
+                        className="w-1/3 border border-gray-300  shadow-sm text-gray-700 rounded px-2 py-1"
+                      />
+                      <span className="text-gray-600">×</span>
+                      <input
+                        type="number"
+                        placeholder="Height"
+                        value={s.heightCm}
+                        onChange={(e) =>
+                          updateSize(idx, "heightCm", Number(e.target.value))
+                        }
+                        required
+                        min={1}
+                        className="w-1/3 border border-gray-300  shadow-sm text-gray-700 rounded px-2 py-1"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeSizeRow(idx)}
+                        className="p-1 text-red-500"
+                      >
+                        <FiTrash2 />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addSizeRow}
+                    className="inline-flex items-center px-3 py-1 bg-[#1c3c74] text-white rounded"
+                  >
+                    <FiPlus className="mr-1" /> Add Size
+                  </button>
+                </div>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Product Image
+                </label>
+                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                  <div className="space-y-1 text-center">
+                    <FiImage className="mx-auto h-12 w-12 text-gray-400" />
+                    <div className="flex text-sm text-gray-600">
+                      <label
+                        htmlFor="file-upload"
+                        className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none"
+                      >
+                        <span>Upload a file</span>
+                        <input
+                          id="file-upload"
+                          name="file-upload"
+                          type="file"
+                          className="sr-only"
+                          onChange={(e) => setFile(e.target.files?.[0] || null)}
+                          required
+                          accept="image/*"
+                        />
+                      </label>
+                      <p className="pl-1">or drag and drop</p>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      PNG, JPG, GIF up to 10MB
+                    </p>
+                    {file && (
+                      <p className="text-sm text-gray-900 truncate">
+                        {file.name}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="md:col-span-2 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={creating}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-[#001842] via-[#1c3c74] to-[#5E89B3] hover:from-[#5E89B3] hover:via-[#1c3c74] hover:to-[#001842] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                >
+                  <FiPlus className="-ml-1 mr-2 h-5 w-5" />
+                  {creating ? "Creating..." : "Create Product"}
+                </button>
+              </div>
+            </form>
+          </section>
+
+          
         </div>
       )}
 
@@ -837,6 +860,12 @@ export default function SellerDashboard() {
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
+                      Customer info
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
                       Date & Time
                     </th>
                     <th
@@ -860,28 +889,58 @@ export default function SellerDashboard() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {orders.map((o) => (
-                    <tr key={o._id} className="hover:bg-gray-50">
+                  {orders.map((o) => {
+        const isExpanded = expandedOrders.has(o._id);
+        const visibleItems = isExpanded ? o.items : o.items.slice(0, 2);
+
+        return (
+          <motion.tr
+            key={o._id}
+            className="hover:bg-gray-50"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500">
                         #{o._id.slice(-6)}
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+              <div className="text-sm text-gray-900">{o.user.name}</div>
+              <div className="text-xs text-gray-500">{o.user.email}</div>
+            </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(o.createdAt)}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">
-                        <div className="max-w-xs">
-                          {o.items.slice(0, 2).map((item, idx) => (
-                            <div key={idx} className="truncate">
-                              {item.quantity} × {item.product.title}
-                            </div>
-                          ))}
-                          {o.items.length > 2 && (
-                            <div className="text-gray-500">
-                              +{o.items.length - 2} more items
-                            </div>
-                          )}
-                        </div>
-                      </td>
+              {visibleItems.map((it, i) => (
+                <div key={i} className="flex items-start">
+                  <img
+                    src={getAssetUrl(
+                      it.product.imageUrl ?? it.product.transparentUrl ?? ""
+                    )}
+                    alt={it.product.title}
+                    className="w-10 h-10 object-cover rounded-md bg-gray-100 mb-2 mr-1"
+                  />
+                  <div>
+                    <div>{it.product.title}</div>
+                    <div className="text-xs text-gray-500">
+                      {it.quantity} × ${it.priceAtOrder.toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {o.items.length > 2 && (
+                <button
+                  onClick={() => toggleExpanded(o._id)}
+                  className="text-gray-500 text-xs mt-2 cursor-pointer hover:bg-blue-100 p-1 rounded-full"
+                >
+                  {isExpanded
+                    ? "Show less"
+                    : `+${o.items.length - 2} more items`}
+                </button>
+              )}
+            </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         ${o.total.toFixed(2)}
                       </td>
@@ -898,8 +957,9 @@ export default function SellerDashboard() {
                           {o.status}
                         </span>
                       </td>
-                    </tr>
-                  ))}
+                    </motion.tr>
+        );
+      })}
                 </tbody>
               </table>
             </div>

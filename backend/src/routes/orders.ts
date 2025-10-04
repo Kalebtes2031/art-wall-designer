@@ -64,10 +64,10 @@ router.get('/', requireAuth(), async (req: any, res) => {
   let orders;
   if (role === 'admin') {
     // admin sees everything
-    orders = await baseQuery().lean();
+    orders = await baseQuery().lean().sort({ createdAt: -1});
   } else if (role === 'seller') {
     // sellers see only orders containing their products
-    const all = await baseQuery();
+    const all = await baseQuery().sort({createdAt: -1});
     orders = all.filter(o =>
       o.items.some(i => {
         const p: any = i.product;
