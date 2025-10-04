@@ -36,6 +36,7 @@ router.get(
   async (req, res) => {
     const users = await User.find()
       .select('_id name email role')
+      .sort({ createdAt:  -1})
       .lean();
     res.json(users.map(u => ({
       id:    u._id,

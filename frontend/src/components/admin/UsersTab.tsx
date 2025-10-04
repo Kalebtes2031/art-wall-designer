@@ -19,9 +19,9 @@ const roleColors = {
 }
 
 const roleIcons = {
-  admin: <FiShield className="w-4 h-4" />,
-  seller: <FiUser className="w-4 h-4" />,
-  customer: <FiUser className="w-4 h-4" />
+  admin: <FiShield className="w-4 h-4 text-purple-800" />,
+  seller: <FiUser className="w-4 h-4 text-amber-800" />,
+  customer: <FiUser className="w-4 h-4 text-blue-800" />
 }
 
 export default function UsersTab() {
